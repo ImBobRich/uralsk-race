@@ -1,7 +1,6 @@
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
-const path = require('path');
 
 const app = express();
 const server = http.createServer(app);
@@ -10,20 +9,24 @@ const io = new Server(server, { cors: { origin: "*" } });
 app.use(express.static('public'));
 
 let players = {};
+let raceActive = true;
 
 io.on('connection', (socket) => {
-    console.log('Кто-то подключился:', socket.id);
-
     socket.on('join', (data) => {
-        players[socket.id] = { id: socket.id, name: data.name, color: data.color, pos: 0 };
+        players[socket.id] = { id: socket.id, name: data.name, pos: 0 };
         io.emit('updatePlayers', players);
     });
 
     socket.on('shake', () => {
-        if (players[socket.id]) {
-            players[socket.id].pos += 2; // Шаг лошадки за один встрях
+        if (raceActive && players[socket.id]) {
+            players[socket.id].pos += 1.5; // Скорость за один встрях
             io.emit('updatePlayers', players);
         }
+    });
+
+    socket.on('finish', (data) => {
+        raceActive = false;
+        io.emit('raceOver', data);
     });
 
     socket.on('disconnect', () => {
