@@ -1,35 +1,112 @@
 <!DOCTYPE html>
-<html>
-<head><title>Уральские Скачки</title><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Уральские Скачки</title>
+    <style>
+        body { margin: 0; font-family: 'Arial', sans-serif; background: #2d5a27; color: white; overflow: hidden; }
+        /* Экран ипподрома */
+        #stadium { display: none; width: 100vw; height: 100vh; flex-direction: column; }
+        .lane { flex: 1; border-bottom: 2px dashed rgba(255,255,255,0.3); position: relative; display: flex; align-items: center; padding-left: 20px; }
+        .horse { position: absolute; font-size: 3rem; transition: left 0.1s linear; white-space: nowrap; filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.5)); }
+        .horse-name { font-size: 1rem; display: block; text-align: center; background: rgba(0,0,0,0.6); padding: 2px 5px; border-radius: 4px; }
+        
+        /* Мобильный пульт */
+        #mobile { display: none; height: 100vh; text-align: center; background: #1a1a1a; padding: 20px; box-sizing: border-box; }
+        .shake-btn { width: 200px; height: 200px; border-radius: 50%; border: none; background: radial-gradient(#ff416c, #ff4b2b); color: white; font-weight: bold; font-size: 1.5rem; box-shadow: 0 0 20px #ff4b2b; margin-top: 50px; cursor: pointer; }
+        .ready-btn { padding: 15px 40px; font-size: 1.2rem; background: #4CAF50; color: white; border: none; border-radius: 10px; margin-top: 20px; }
+    </style>
+</head>
 <body>
-    <div id="setup">
-        <input type="text" id="name" placeholder="Имя команды">
-        <button onclick="join()">В игру!</button>
+
+    <div id="stadium">
+        <div style="background: rgba(0,0,0,0.5); padding: 10px; text-align: center;">
+            <h1 style="margin:0;">СОЛЬНАЛЬ: УРАЛЬСКИЕ СКАЧКИ</h1>
+        </div>
+        <div id="tracks" style="flex:1; position:relative;"></div>
     </div>
-    <div id="game" style="display:none;">
-        <h1>Тряси телефон!</h1>
-        <div id="track" style="height: 300px; border: 1px solid #000; position: relative;"></div>
+
+    <div id="mobile">
+        <div id="setup">
+            <h2>Настройка жокея</h2>
+            <input type="text" id="pName" placeholder="Имя лошади" style="padding:15px; width:80%; font-size:1.2rem; border-radius:8px; border:none;"><br>
+            <button class="ready-btn" onclick="goReady()">Я ГОТОВ!</button>
+        </div>
+        <div id="race-ui" style="display:none;">
+            <h2 id="status">ЖДЕМ СТАРТА...</h2>
+            <button class="shake-btn" id="shakeBtn">ТРЯСИ ТЕЛЕФОН!</button>
+            <p style="margin-top:20px; color:#aaa;">Или быстро нажимай на кнопку</p>
+        </div>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
-        function join() {
-            const name = document.getElementById('name').value;
-            socket.emit('join', { name: name, color: 'red' });
-            document.getElementById('setup').style.display = 'none';
-            document.getElementById('game').style.display = 'block';
-            
-            // Тест на клик (вместо тряски пока)
-            window.addEventListener('click', () => socket.emit('shake'));
+        const urlParams = new URLSearchParams(window.location.search);
+        const isScreen = urlParams.has('screen'); // Проверяем, есть ли ?screen в ссылке
+
+        if (isScreen) {
+            document.getElementById('stadium').style.display = 'flex';
+        } else {
+            document.getElementById('mobile').style.display = 'block';
         }
 
+        function goReady() {
+            const name = document.getElementById('pName').value || "Аноним";
+            socket.emit('join', { name: name });
+            document.getElementById('setup').style.display = 'none';
+            document.getElementById('race-ui').style.display = 'block';
+        }
+
+        // Логика тряски (акселерометр)
+        let lastShake = 0;
+        if (window.DeviceMotionEvent) {
+            window.addEventListener('devicemotion', (event) => {
+                let acc = event.accelerationIncludingGravity;
+                let speed = Math.abs(acc.x) + Math.abs(acc.y) + Math.abs(acc.z);
+                if (speed > 25) { // Порог чувствительности
+                    let now = Date.now();
+                    if (now - lastShake > 100) { // Защита от слишком частых срабатываний
+                        socket.emit('shake');
+                        lastShake = now;
+                        visualFeedback();
+                    }
+                }
+            });
+        }
+
+        // Запасной вариант - клик
+        document.getElementById('shakeBtn').addEventListener('click', () => {
+            socket.emit('shake');
+            visualFeedback();
+        });
+
+        function visualFeedback() {
+            const btn = document.getElementById('shakeBtn');
+            btn.style.transform = "scale(1.1)";
+            setTimeout(() => btn.style.transform = "scale(1)", 50);
+        }
+
+        // Обновление ипподрома
         socket.on('updatePlayers', (players) => {
-            const track = document.getElementById('track');
-            track.innerHTML = '';
+            if (!isScreen) return;
+            const tracks = document.getElementById('tracks');
+            tracks.innerHTML = '';
+            
+            let i = 0;
             for (let id in players) {
                 const p = players[id];
-                track.innerHTML += `<div style="position:absolute; left:${p.pos}px; top:50px;">🐎 ${p.name}</div>`;
+                const lane = document.createElement('div');
+                lane.className = 'lane';
+                lane.innerHTML = `
+                    <div class="horse" style="left: ${Math.min(p.pos, 90)}vw;">
+                        <span class="horse-name">${p.name}</span>
+                        🐎
+                    </div>
+                `;
+                tracks.appendChild(lane);
+                i++;
             }
         });
     </script>
