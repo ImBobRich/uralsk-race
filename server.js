@@ -19,7 +19,7 @@ io.on('connection', (socket) => {
 
     socket.on('shake', () => {
         if (raceActive && players[socket.id]) {
-            players[socket.id].pos += 1.5; // Скорость за один встрях
+            players[socket.id].pos += 0.15; // Скорость за один встрях
             io.emit('updatePlayers', players);
         }
     });
