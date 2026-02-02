@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head><title>Уральские Скачки</title><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body>
+    <div id="setup">
+        <input type="text" id="name" placeholder="Имя команды">
+        <button onclick="join()">В игру!</button>
+    </div>
+    <div id="game" style="display:none;">
+        <h1>Тряси телефон!</h1>
+        <div id="track" style="height: 300px; border: 1px solid #000; position: relative;"></div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        function join() {
+            const name = document.getElementById('name').value;
+            socket.emit('join', { name: name, color: 'red' });
+            document.getElementById('setup').style.display = 'none';
+            document.getElementById('game').style.display = 'block';
+            
+            // Тест на клик (вместо тряски пока)
+            window.addEventListener('click', () => socket.emit('shake'));
+        }
+
+        socket.on('updatePlayers', (players) => {
+            const track = document.getElementById('track');
+            track.innerHTML = '';
+            for (let id in players) {
+                const p = players[id];
+                track.innerHTML += `<div style="position:absolute; left:${p.pos}px; top:50px;">🐎 ${p.name}</div>`;
+            }
+        });
+    </script>
+</body>
+</html>
