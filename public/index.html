@@ -11,23 +11,24 @@
         
         /* Исправленная лошадка: развернута и с анимацией */
         .horse { 
-            position: absolute; 
-            font-size: 3.5rem; 
-            transition: left 0.15s linear; 
-            white-space: nowrap; 
-            transform: scaleX(-1); /* Разворачиваем лошадь головой вперед */
-            filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.5)); 
-        }
-        .horse-label { 
-            transform: scaleX(-1); /* Возвращаем текст в нормальное состояние */
-            font-size: 1rem; 
-            display: block; 
-            text-align: center; 
-            background: rgba(0,0,0,0.7); 
-            padding: 2px 8px; 
-            border-radius: 5px;
-            margin-bottom: 5px;
-        }
+    position: absolute; 
+    font-size: 3.5rem; 
+    transition: left 0.2s ease-out; /* Плавное движение */
+    white-space: nowrap; 
+    transform: scaleX(-1); 
+    filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.5)); 
+}
+
+/* Анимация скачки */
+@keyframes gallop {
+    0% { transform: scaleX(-1) translateY(0); }
+    50% { transform: scaleX(-1) translateY(-10px); }
+    100% { transform: scaleX(-1) translateY(0); }
+}
+
+.horse-jumping {
+    animation: gallop 0.2s infinite;
+}
         
         #mobile { display: none; height: 100vh; text-align: center; background: #1a1a1a; padding: 20px; box-sizing: border-box; }
         .shake-btn { width: 220px; height: 220px; border-radius: 50%; border: 8px solid #333; background: radial-gradient(#ff416c, #ff4b2b); color: white; font-weight: bold; font-size: 1.5rem; box-shadow: 0 0 30px rgba(255,75,43,0.5); margin-top: 40px; }
