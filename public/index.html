@@ -3,60 +3,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Уральские Скачки</title>
+    <title>Уральские Скачки 3D</title>
     <style>
-        body { margin: 0; font-family: 'Arial', sans-serif; background: #2d5a27; color: white; overflow: hidden; }
-        #stadium { display: none; width: 100vw; height: 100vh; flex-direction: column; }
-        .lane { flex: 1; border-bottom: 2px dashed rgba(255,255,255,0.3); position: relative; display: flex; align-items: center; }
+        body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #1a1a1a; color: white; overflow: hidden; }
         
-        /* Исправленная лошадка: развернута и с анимацией */
+        /* 3D Ипподром */
+        #stadium { display: none; width: 100vw; height: 100vh; flex-direction: column; background: radial-gradient(circle, #2d5a27 0%, #1a3317 100%); }
+        
+        #track-container { 
+            flex: 1; 
+            perspective: 1000px; /* Создает эффект глубины */
+            perspective-origin: 50% 20%;
+            position: relative;
+        }
+
+        #tracks {
+            transform: rotateX(25deg); /* Наклоняем поле для 3D эффекта */
+            transform-origin: bottom;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            background: #2d5a27;
+            border: 15px solid #3d2b1f; /* "Забор" ипподрома */
+            box-shadow: 0 50px 100px rgba(0,0,0,0.5);
+        }
+
+        .lane { 
+            flex: 1; 
+            border-bottom: 2px dashed rgba(255,255,255,0.2); 
+            position: relative; 
+            display: flex; 
+            align-items: center;
+        }
+
         .horse { 
-        position: absolute; 
-        font-size: 3.5rem; 
-        transition: left 0.2s ease-out; /* Плавное движение */
-        white-space: nowrap; 
-        transform: scaleX(-1); 
-        filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.5)); 
-    }
+            position: absolute; 
+            font-size: 4rem; 
+            transition: left 0.2s linear; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 10;
+        }
 
-    /* Анимация скачки */
-    @keyframes gallop {
-        0% { transform: scaleX(-1) translateY(0); }
-        50% { transform: scaleX(-1) translateY(-10px); }
-        100% { transform: scaleX(-1) translateY(0); }
-    }
+        .horse-img { transform: scaleX(-1); } /* Разворачиваем только саму лошадь */
 
-    .horse-jumping {
-        animation: gallop 0.2s infinite;
-    }
+        .horse-label { 
+            font-size: 1rem; 
+            background: rgba(0,0,0,0.8); 
+            padding: 2px 10px; 
+            border-radius: 20px;
+            color: #ffd700;
+            margin-bottom: -10px;
+            white-space: nowrap;
+            border: 1px solid #ffd700;
+        }
+
+        /* Анимация прыжка */
+        @keyframes gallop {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+            100% { transform: translateY(0); }
+        }
+        .jumping { animation: gallop 0.3s infinite ease-in-out; }
+
+        /* Интерфейс */
+        .header { background: rgba(0,0,0,0.9); padding: 10px 30px; display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #ffd700; }
+        .reset-btn { background: #ff4b2b; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; }
         
-        #mobile { display: none; height: 100vh; text-align: center; background: #1a1a1a; padding: 20px; box-sizing: border-box; }
-        .shake-btn { width: 220px; height: 220px; border-radius: 50%; border: 8px solid #333; background: radial-gradient(#ff416c, #ff4b2b); color: white; font-weight: bold; font-size: 1.5rem; box-shadow: 0 0 30px rgba(255,75,43,0.5); margin-top: 40px; }
-        .winner-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); display:flex; flex-direction:column; justify-content:center; align-items:center; z-index:100; }
+        #mobile { display: none; height: 100vh; text-align: center; background: #111; padding: 20px; }
+        .shake-btn { width: 220px; height: 220px; border-radius: 50%; border: 10px solid #222; background: radial-gradient(#ff416c, #ff4b2b); color: white; font-weight: bold; font-size: 1.8rem; box-shadow: 0 0 40px rgba(255,75,43,0.4); margin-top: 50px; }
+
+        .winner-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); display:flex; flex-direction:column; justify-content:center; align-items:center; z-index:1000; animation: fadeIn 0.5s; }
+        @keyframes fadeIn { from {opacity: 0;} to {opacity: 1;} }
     </style>
 </head>
 <body>
 
     <div id="stadium">
-        <div style="background: rgba(0,0,0,0.8); padding: 15px; text-align: center; display: flex; justify-content: space-between; align-items: center;">
-            <div style="width: 200px;"></div>
-            <h1 style="margin:0; color: #ffd700;">СОЛЬНАЛЬ: УРАЛЬСКИЕ СКАЧКИ</h1>
-            <button onclick="location.reload()" style="padding: 10px; background: #444; color: white; border: none; border-radius: 5px; cursor: pointer;">Сброс игры</button>
+        <div class="header">
+            <h1 style="margin:0; font-size: 1.5rem; color: #ffd700;">🇰🇿 СОЛЬНАЛЬ: УРАЛЬСКИЕ СКАЧКИ</h1>
+            <button class="reset-btn" onclick="resetGame()">СБРОС ИГРЫ</button>
         </div>
-        <div id="tracks" style="flex:1; position:relative; border-right: 10px solid gold;"></div>
-        <div id="finish-line" style="position: absolute; right: 0; top: 0; bottom: 0; width: 50px; background: repeating-linear-gradient(45deg, #000, #000 10px, #fff 10px, #fff 20px); opacity: 0.3;"></div>
+        <div id="track-container">
+            <div id="tracks"></div>
+        </div>
     </div>
 
     <div id="mobile">
         <div id="setup">
-            <h2 style="color: #ffd700;">Регистрация жокея</h2>
-            <input type="text" id="pName" placeholder="Имя вашей лошади" style="padding:15px; width:85%; font-size:1.2rem; border-radius:10px; border:none; margin-bottom: 20px;">
-            <button onclick="goReady()" style="padding: 20px 50px; font-size: 1.5rem; background: #4CAF50; color: white; border: none; border-radius: 15px; font-weight: bold;">УЧАСТВОВАТЬ!</button>
+            <h2 style="color: #ffd700;">Регистрация Жокея</h2>
+            <input type="text" id="pName" placeholder="Имя команды / стола" style="padding:15px; width:80%; font-size:1.2rem; border-radius:10px; margin-bottom:20px;">
+            <button onclick="goReady()" style="padding:20px 50px; font-size:1.5rem; background:#4CAF50; color:white; border:none; border-radius:15px; font-weight:bold; width:100%;">ВСТУПИТЬ В ЗАЕЗД</button>
         </div>
         <div id="race-ui" style="display:none;">
-            <h2 id="status" style="color: #4CAF50;">ГОТОВ К СТАРТУ</h2>
-            <button class="shake-btn" id="shakeBtn">ТРЯСИ ТЕЛЕФОН!</button>
-            <div id="mobile-finish" style="display:none; margin-top: 20px; font-size: 1.5rem; color: gold;">ФИНИШ! Ждем результат...</div>
+            <h1 id="status" style="color:#4CAF50;">ГОТОВ!</h1>
+            <button class="shake-btn" id="shakeBtn">ТРЯСИ!</button>
         </div>
     </div>
 
@@ -66,11 +108,8 @@
         const isScreen = new URLSearchParams(window.location.search).has('screen');
         let gameActive = true;
 
-        if (isScreen) {
-            document.getElementById('stadium').style.display = 'flex';
-        } else {
-            document.getElementById('mobile').style.display = 'block';
-        }
+        if (isScreen) document.getElementById('stadium').style.display = 'flex';
+        else document.getElementById('mobile').style.display = 'block';
 
         function goReady() {
             const name = document.getElementById('pName').value || "Жокей";
@@ -79,25 +118,21 @@
             document.getElementById('race-ui').style.display = 'block';
         }
 
-        let lastShake = 0;
-        const handleShake = () => {
-            if (!gameActive) return;
-            socket.emit('shake');
-            const btn = document.getElementById('shakeBtn');
-            btn.style.transform = "scale(1.05)";
-            setTimeout(() => btn.style.transform = "scale(1)", 50);
-        };
-
-        if (window.DeviceMotionEvent) {
-            window.addEventListener('devicemotion', (e) => {
-                let acc = e.accelerationIncludingGravity;
-                if (Math.abs(acc.x) + Math.abs(acc.y) + Math.abs(acc.z) > 25) {
-                    let now = Date.now();
-                    if (now - lastShake > 100) { handleShake(); lastShake = now; }
-                }
-            });
+        function resetGame() {
+            socket.emit('restart');
         }
-        document.getElementById('shakeBtn').onclick = handleShake;
+
+        socket.on('gameRestarted', () => {
+            gameActive = true;
+            const overlay = document.querySelector('.winner-overlay');
+            if (overlay) overlay.remove();
+            if (!isScreen) {
+                document.getElementById('status').innerText = "ГОТОВ!";
+                document.getElementById('shakeBtn').style.display = "inline-block";
+            }
+        });
+
+        document.getElementById('shakeBtn').onclick = () => socket.emit('shake');
 
         socket.on('updatePlayers', (players) => {
             if (!isScreen) return;
@@ -108,32 +143,33 @@
                 const p = players[id];
                 const lane = document.createElement('div');
                 lane.className = 'lane';
-                // Ограничиваем бег 90% ширины экрана для финиша
-                const position = Math.min(p.pos, 92);
-                lane.innerHTML = `<div class="horse" style="left: ${position}vw;"><span class="horse-label">${p.name}</span>🐎</div>`;
+                const pos = Math.min(p.pos, 92);
+                
+                lane.innerHTML = `
+                    <div class="horse ${p.pos > 0 ? 'jumping' : ''}" style="left: ${pos}vw;">
+                        <span class="horse-label">${p.name}</span>
+                        <span class="horse-img">🐎</span>
+                    </div>
+                `;
                 tracks.appendChild(lane);
 
                 if (p.pos >= 92 && gameActive) {
                     gameActive = false;
-                    showWinner(p.name);
+                    socket.emit('finish', { winner: p.name });
                 }
             }
         });
 
-        function showWinner(name) {
-            const overlay = document.createElement('div');
-            overlay.className = 'winner-overlay';
-            overlay.innerHTML = `<h1 style="font-size: 5rem; color: gold; margin: 0;">🏆 ПОБЕДИТЕЛЬ!</h1><h2 style="font-size: 3rem;">${name}</h2>`;
-            document.body.appendChild(overlay);
-            socket.emit('finish', { winner: name });
-        }
-
-        socket.on('raceOver', () => {
+        socket.on('raceOver', (data) => {
             gameActive = false;
-            if (!isScreen) {
-                document.getElementById('shakeBtn').style.display = 'none';
-                document.getElementById('status').innerText = "ЗАЕЗД ОКОНЧЕН";
-                document.getElementById('mobile-finish').style.display = 'block';
+            if (isScreen) {
+                const overlay = document.createElement('div');
+                overlay.className = 'winner-overlay';
+                overlay.innerHTML = `<h1 style="font-size:5rem; color:gold;">🏆 ПОБЕДИТЕЛЬ</h1><h2 style="font-size:4rem;">${data.winner}</h2><button class="reset-btn" onclick="resetGame()" style="font-size:1.5rem; margin-top:20px;">ИГРАТЬ СНОВА</button>`;
+                document.body.appendChild(overlay);
+            } else {
+                document.getElementById('status').innerText = "ФИНИШ!";
+                document.getElementById('shakeBtn').style.display = "none";
             }
         });
     </script>
