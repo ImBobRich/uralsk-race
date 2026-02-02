@@ -29,6 +29,13 @@ io.on('connection', (socket) => {
         io.emit('raceOver', data);
     });
 
+    socket.on('restart', () => {
+        raceActive = true;
+        for (let id in players) { players[id].pos = 0; }
+        io.emit('updatePlayers', players);
+        io.emit('gameRestarted'); // Этот сигнал заставит всех обновить экраны
+    });
+
     socket.on('disconnect', () => {
         delete players[socket.id];
         io.emit('updatePlayers', players);
