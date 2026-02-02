@@ -3,94 +3,107 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Уральские Скачки 3D</title>
+    <title>Уральские Скачки: LIVE</title>
     <style>
-        body { margin: 0; padding: 0; background: #87CEEB; overflow: hidden; font-family: 'Arial Black', sans-serif; }
+        :root {
+            --lane-red: #ff4d4d; --lane-blue: #4d94ff; --lane-yellow: #ffdb4d; 
+            --lane-purple: #b366ff; --lane-green: #4dff88; --lane-orange: #ff944d;
+        }
+        body { margin: 0; padding: 0; background: #000; font-family: 'Arial Black', sans-serif; overflow: hidden; }
+
+        /* ЭКРАН ТРАССЫ (ТЕЛЕВИЗОР) */
+        #stadium { display: none; width: 100vw; height: 100vh; flex-direction: column; background: #1a3317; }
         
-        #stadium { display: none; width: 100vw; height: 100vh; flex-direction: column; }
-
-        /* Фон: Небо и Горизонт */
-        #scene {
-            flex: 1;
-            position: relative;
-            background: linear-gradient(to bottom, #2980b9 0%, #6dd5fa 45%, #ffffff 50%, #1a3317 50%);
-            overflow: hidden;
+        #header { 
+            height: 12%; background: rgba(0,0,0,0.8); display: flex; 
+            justify-content: space-around; align-items: center; border-bottom: 4px solid gold;
         }
 
-        /* Трасса: просто трапеция без 3D-поворотов */
-        #ground-track {
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 100%;
-            height: 50%;
-            background: #2d5a27;
-            /* Рисуем сужающиеся дорожки через clip-path */
-            clip-path: polygon(25% 0%, 75% 0%, 100% 100%, 0% 100%);
-            border-top: 8px solid gold; /* Линия финиша */
-            background-image: repeating-linear-gradient(90deg, transparent, transparent 19%, rgba(255,255,255,0.2) 20%);
+        #race-field {
+            flex: 1; position: relative; overflow: hidden;
+            background: linear-gradient(to bottom, #4facfe 0%, #00f2fe 40%, #ffffff 45%, #2d5a27 45%);
         }
 
+        /* Цветные дорожки в перспективе */
+        #tracks-layer {
+            position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+            width: 100%; height: 55%; display: flex;
+            clip-path: polygon(15% 0%, 85% 0%, 100% 100%, 0% 100%);
+        }
+        .lane { flex: 1; border-right: 2px solid rgba(255,255,255,0.5); position: relative; }
+        .lane:nth-child(1) { background: var(--lane-red); }
+        .lane:nth-child(2) { background: var(--lane-blue); }
+        .lane:nth-child(3) { background: var(--lane-yellow); }
+        .lane:nth-child(4) { background: var(--lane-purple); }
+        .lane:nth-child(5) { background: var(--lane-green); }
+        .lane:nth-child(6) { background: var(--lane-orange); }
+
+        /* Наездник (Вид сзади-сбоку как на фото) */
         .horse {
-            position: absolute;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            /* Плавность движения */
-            transition: all 0.2s ease-out;
-            width: 100px;
-            /* Чтобы не заваливалась */
-            transform-origin: bottom center;
+            position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+            display: flex; flex-direction: column; align-items: center;
+            transition: all 0.2s ease-out; z-index: 10;
+        }
+        .horse-emoji { font-size: 5rem; transform: scaleX(-1); filter: drop-shadow(0 10px 5px rgba(0,0,0,0.5)); }
+        .horse-label { 
+            background: white; color: black; padding: 2px 10px; border-radius: 5px; 
+            font-size: 1rem; margin-bottom: -5px; border: 2px solid black;
         }
 
-        .horse-emoji { 
-            font-size: 5rem; 
-            /* Чистый вид, без наклонов, только отражение чтобы смотрела в нужную сторону */
-            transform: scaleX(-1); 
-            filter: drop-shadow(0 10px 5px rgba(0,0,0,0.3));
+        /* LIVE СТАТИСТИКА */
+        #stats-panel {
+            position: absolute; top: 20px; right: 20px; width: 250px;
+            background: rgba(0,0,0,0.7); border: 2px solid gold; padding: 15px; border-radius: 10px;
         }
+        .stat-row { display: flex; justify-content: space-between; margin-bottom: 5px; color: gold; font-size: 0.9rem; }
 
-        .horse-label {
-            background: gold; color: #000; padding: 2px 10px; border-radius: 5px;
-            font-size: 1.1rem; font-weight: bold; border: 2px solid #000;
-            white-space: nowrap; margin-bottom: -5px; z-index: 2;
+        /* МОБИЛЬНЫЙ ПУЛЬТ */
+        #mobile { display: none; height: 100vh; background: #1b5e20; color: white; text-align: center; }
+        .energy-bar-container { 
+            width: 80%; height: 40px; background: #333; border-radius: 20px; 
+            margin: 20px auto; border: 3px solid white; overflow: hidden;
         }
+        #energy-fill { width: 0%; height: 100%; background: linear-gradient(90deg, #ffeb3b, #ff5722); transition: width 0.1s; }
+        
+        #btn-ready { background: #4CAF50; padding: 20px 50px; font-size: 2rem; border-radius: 15px; color: white; border: none; font-weight: bold; }
+        #btn-shake { width: 250px; height: 250px; border-radius: 50%; background: #ff9800; font-size: 2.5rem; border: 10px solid white; box-shadow: 0 10px 0 #e65100; color: white; font-weight: bold; margin-top: 20px; }
 
-        @keyframes jump {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-15px); }
-        }
-        .is-moving .horse-emoji { animation: jump 0.25s infinite; }
-
-        /* Мобилка */
-        #mobile { display: none; height: 100vh; text-align: center; background: #222; padding: 20px; color: white; }
-        .shake-btn { width: 220px; height: 220px; border-radius: 50%; background: #27ae60; border: 8px solid white; font-size: 2rem; font-weight: bold; color: white; margin-top: 40px; box-shadow: 0 10px 0 #1e8449; }
+        @keyframes jump { 0%, 100% { transform: scaleX(-1) translateY(0); } 50% { transform: scaleX(-1) translateY(-15px); } }
+        .moving .horse-emoji { animation: jump 0.2s infinite; }
     </style>
 </head>
 <body>
 
     <div id="stadium">
-        <div style="background: #000; padding: 10px; text-align: center; border-bottom: 4px solid gold; z-index: 1000;">
-            <h1 style="color: gold; margin: 0; font-size: 1.5rem;">🏇 СОЛЬНАЛЬ: УРАЛЬСКИЕ СКАЧКИ 🇰🇿</h1>
-            <button onclick="socket.emit('restart')" style="position: absolute; right: 10px; top: 12px;">СБРОС</button>
+        <div id="header">
+            <h1 style="color: gold; margin: 0;">СОЛЬНАЛЬ: УРАЛЬСКИЕ СКАЧКИ</h1>
+            <div id="timer" style="font-size: 2rem; color: white; font-family: monospace;">00:03</div>
         </div>
-        <div id="scene">
-            <div id="ground-track"></div>
-            <div id="horses-layer" style="position: absolute; top: 50%; left: 0; width: 100%; height: 50%; pointer-events: none;">
-                </div>
+        <div id="race-field">
+            <div id="tracks-layer">
+                <div class="lane"></div><div class="lane"></div><div class="lane"></div>
+                <div class="lane"></div><div class="lane"></div><div class="lane"></div>
+            </div>
+            <div id="horses-container" style="position: absolute; bottom: 0; left: 0; width: 100%; height: 55%;"></div>
+            
+            <div id="stats-panel">
+                <h3 style="margin:0 0 10px 0; border-bottom: 1px solid gold;">LIVE СТАТИСТИКА</h3>
+                <div id="live-ranks"></div>
+            </div>
         </div>
     </div>
 
     <div id="mobile">
-        <div id="setup">
-            <h2>РЕГИСТРАЦИЯ</h2>
-            <input type="text" id="pName" placeholder="НОМЕР СТОЛА" style="padding: 15px; width: 80%; font-size: 1.5rem; text-align: center;"><br><br>
-            <button onclick="go()" style="padding: 20px; width: 85%; background: gold; color: black; font-size: 1.5rem; border: none; font-weight: bold; border-radius: 10px;">ПОДКЛЮЧИТЬСЯ</button>
+        <div id="setup" style="padding-top: 50px;">
+            <h2 style="font-size: 2rem;">НА СТАРТ!</h2>
+            <input type="text" id="pName" placeholder="СТОЛ №" style="padding: 20px; width: 70%; font-size: 1.5rem; text-align: center; border-radius: 10px; border: none; margin-bottom: 20px;">
+            <br>
+            <button id="btn-ready" onclick="join()">ГОТОВ!</button>
         </div>
-        <div id="race-ui" style="display:none;">
-            <h2>ТРЯСИ ТЕЛЕФОН!</h2>
-            <button class="shake-btn" id="shakeBtn">СКАКАТЬ!</button>
+        <div id="race-ui" style="display:none; padding-top: 30px;">
+            <h1 style="font-style: italic; font-size: 2.5rem;">ТРЯСИ БЫСТРЕЕ!</h1>
+            <div class="energy-bar-container"><div id="energy-fill"></div></div>
+            <button id="btn-shake">ТРЯСИ!</button>
         </div>
     </div>
 
@@ -98,60 +111,66 @@
     <script>
         const socket = io();
         const isScreen = new URLSearchParams(window.location.search).has('screen');
-        let active = true;
+        let gameActive = true;
 
         if (isScreen) document.getElementById('stadium').style.display = 'flex';
         else document.getElementById('mobile').style.display = 'block';
 
-        async function go() {
+        async function join() {
             const name = document.getElementById('pName').value || "Жокей";
-            if (window.DeviceMotionEvent && typeof DeviceMotionEvent.requestPermission === 'function') {
-                const res = await DeviceMotionEvent.requestPermission();
-                if (res === 'granted') window.addEventListener('devicemotion', sensor);
-            } else {
-                window.addEventListener('devicemotion', sensor);
+            if (window.DeviceMotionEvent && DeviceMotionEvent.requestPermission) {
+                await DeviceMotionEvent.requestPermission();
             }
-            socket.emit('join', { name: name });
+            window.addEventListener('devicemotion', (e) => {
+                let a = e.accelerationIncludingGravity;
+                if (Math.abs(a.x) + Math.abs(a.y) + Math.abs(a.z) > 22) shake();
+            });
+            socket.emit('join', { name });
             document.getElementById('setup').style.display = 'none';
             document.getElementById('race-ui').style.display = 'block';
         }
 
-        function sensor(e) {
-            let a = e.accelerationIncludingGravity;
-            if (Math.abs(a.x) + Math.abs(a.y) + Math.abs(a.z) > 22) socket.emit('shake');
+        function shake() {
+            if (!gameActive) return;
+            socket.emit('shake');
+            const fill = document.getElementById('energy-fill');
+            fill.style.width = '100%';
+            setTimeout(() => fill.style.width = '0%', 100);
         }
-        document.getElementById('shakeBtn').onclick = () => socket.emit('shake');
+        document.getElementById('btn-shake').onclick = shake;
 
         socket.on('updatePlayers', (players) => {
             if (!isScreen) return;
-            const layer = document.getElementById('horses-layer');
-            layer.innerHTML = '';
+            const container = document.getElementById('horses-container');
+            const ranks = document.getElementById('live-ranks');
+            container.innerHTML = '';
+            ranks.innerHTML = '';
             
-            const ids = Object.keys(players);
-            ids.forEach((id, index) => {
-                const p = players[id];
+            const pArray = Object.values(players).sort((a,b) => b.pos - a.pos);
+            
+            pArray.forEach((p, index) => {
+                // Отрисовка на трассе
+                const laneWidth = 100 / 6;
                 const progress = p.pos / 100;
                 
-                // Расчет X (сужение к горизонту)
-                const startX = ((index + 1) / (ids.length + 1)) * 100;
-                const endX = 30 + (((index + 1) / (ids.length + 1)) * 40); // Сужение к 30%-70%
+                const startX = ((index % 6 + 0.5) * laneWidth);
+                const endX = 20 + ((index % 6 + 0.5) * (60/6));
                 const currentX = startX + (endX - startX) * progress;
 
                 const horse = document.createElement('div');
-                horse.className = `horse ${p.pos > 0 ? 'is-moving' : ''}`;
-                
-                // Позиция
+                horse.className = `horse ${p.pos > 0 ? 'moving' : ''}`;
                 horse.style.left = `${currentX}%`;
-                // Движение: снизу (100%) вверх (0% к линии горизонта)
-                horse.style.top = `${100 - (p.pos * 1.05)}%`; 
-                horse.style.transform = `translateX(-50%) scale(${1.5 - progress})`;
+                horse.style.bottom = `${p.pos}%`;
+                horse.style.transform = `translateX(-50%) scale(${1.5 - (progress*0.7)})`;
                 horse.style.zIndex = Math.floor(100 - p.pos);
+                horse.innerHTML = `<div class="horse-label">${p.name}</div><div class="horse-emoji">🏇</div>`;
+                container.appendChild(horse);
 
-                horse.innerHTML = `<span class="horse-label">${p.name}</span><span class="horse-emoji">🏇</span>`;
-                layer.appendChild(horse);
+                // Статистика
+                ranks.innerHTML += `<div class="stat-row"><span>${index+1}. ${p.name}</span><span>${Math.floor(p.pos)}%</span></div>`;
 
-                if (p.pos >= 95 && active) {
-                    active = false;
+                if (p.pos >= 98 && gameActive) {
+                    gameActive = false;
                     alert("ПОБЕДИТЕЛЬ: " + p.name);
                     socket.emit('restart');
                 }
