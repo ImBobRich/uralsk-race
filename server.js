@@ -10,6 +10,92 @@ app.use(express.static(__dirname + '/public'));
 
 let gameState = {
     status: 'LOBBY',
+    tables: {}, // { tableId: { id, name, score, count } }
+    countdown: 5,
+    winner: null,
+    totalTables: 7 // Можно менять через админку
+};
+
+const broadcast = () => io.emit('updateState', gameState);
+
+io.on('connection', (socket) => {
+    // Отправляем текущее состояние сразу при входе
+    socket.emit('updateState', gameState);
+
+    socket.on('join', ({ tableId, teamName }) => {
+        if (!tableId) return;
+        socket.tableId = tableId;
+        
+        // Если команды еще нет — создаем. Если есть — просто увеличиваем счетчик людей
+        if (!gameState.tables[tableId]) {
+            gameState.tables[tableId] = { 
+                id: tableId, 
+                name: teamName || `Стол ${tableId}`, 
+                score: 0, 
+                count: 1 
+            };
+        } else {
+            gameState.tables[tableId].count++;
+        }
+        broadcast();
+    });
+
+    socket.on('shake', () => {
+        if (gameState.status !== 'RACING' || !socket.tableId) return;
+        let t = gameState.tables[socket.tableId];
+        if (t && t.score < 100) {
+            t.score += 0.08; // Оптимальная скорость для азарта
+            if (t.score >= 100) {
+                t.score = 100;
+                gameState.status = 'FINISHED';
+                gameState.winner = t.name;
+                broadcast();
+            }
+        }
+    });
+
+    socket.on('adminSetTables', (num) => {
+        gameState.totalTables = parseInt(num) || 7;
+        broadcast();
+    });
+
+    socket.on('adminStartCountdown', () => {
+        if (gameState.status !== 'LOBBY') return;
+        gameState.status = 'COUNTDOWN';
+        gameState.countdown = 5;
+        broadcast();
+        const timer = setInterval(() => {
+            gameState.countdown--;
+            if (gameState.countdown <= 0) {
+                clearInterval(timer);
+                gameState.status = 'RACING';
+            }
+            broadcast();
+        }, 1000);
+    });
+
+    socket.on('restart', () => {
+        gameState = { ...gameState, status: 'LOBBY', tables: {}, winner: null };
+        io.emit('gameRestarted');
+        broadcast();
+    });
+});
+
+setInterval(() => { if (gameState.status === 'RACING') broadcast(); }, 50);
+
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => console.log(`ИГРА ЗАПУЩЕНА: http://localhost:${PORT}`));onst express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
+
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server);
+
+app.use(express.static(__dirname + '/public'));
+
+let gameState = {
+    status: 'LOBBY',
     tables: {}, 
     countdown: 5,
     winner: null,
