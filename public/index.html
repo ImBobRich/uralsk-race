@@ -9,10 +9,10 @@
         body { margin: 0; background: #000; font-family: 'Arial Black', sans-serif; color: white; overflow: hidden; touch-action: none; }
         .page { display: none; width: 100vw; height: 100vh; position: fixed; top: 0; left: 0; box-sizing: border-box; }
         
-        /* ТВ СТИЛИ */
-        #lobby { flex-direction: column; align-items: center; justify-content: center; background: #000; }
+        /* ТВ ЭКРАН */
+        #lobby { flex-direction: column; align-items: center; justify-content: center; }
         .header-title { text-align: center; margin-bottom: 30px; }
-        .header-title h1 { font-size: 6rem; color: #fff; margin: 0; text-shadow: 0 0 20px gold; }
+        .header-title h1 { font-size: 6rem; color: #fff; margin: 0; text-shadow: 0 0 20px gold; -webkit-text-stroke: 2px gold; }
         .header-title h2 { font-size: 3rem; color: gold; margin: 0; }
         .qr-wrap { background: white; padding: 15px; border: 10px solid gold; border-radius: 20px; }
         
@@ -20,10 +20,10 @@
         .lane { flex: 1; border-bottom: 1px solid rgba(255,255,255,0.1); position: relative; display: flex; align-items: center; }
         .horse { position: absolute; left: 0; transition: left 0.1s linear; display: flex; align-items: center; }
         .horse-img { font-size: 5rem; transform: scaleX(-1); }
-        .horse-label { background: #fff; color: #000; padding: 5px 15px; border-radius: 10px; font-weight: bold; font-size: 1.5rem; }
+        .horse-label { background: #fff; color: #000; padding: 5px 15px; border-radius: 10px; font-weight: bold; font-size: 1.5rem; border: 3px solid #000; }
 
-        #stats-bar { height: 100px; background: #000; border-top: 5px solid gold; display: flex; justify-content: space-around; align-items: center; }
-        .stat-item { background: #222; padding: 10px; border-radius: 8px; border: 1px solid gold; text-align: center; min-width: 120px; }
+        #stats-bar { height: 110px; background: #000; border-top: 5px solid gold; display: flex; justify-content: space-around; align-items: center; }
+        .stat-item { background: #222; padding: 10px 20px; border-radius: 8px; border: 1px solid gold; text-align: center; }
 
         /* МОБИЛКА */
         #mobile { background: #1b5e20; text-align: center; padding: 20px; }
@@ -32,15 +32,15 @@
         .t-btn.active { border-color: gold; background: #ffeb3b; }
         .t-btn.full { background: #444; color: #777; pointer-events: none; opacity: 0.5; }
         .m-in { width: 100%; padding: 20px; margin-bottom: 20px; font-size: 1.3rem; border-radius: 15px; border: none; text-align: center; box-sizing: border-box; }
-        .m-btn { width: 100%; padding: 25px; background: gold; font-weight: bold; font-size: 2rem; border-radius: 20px; border: none; color: #000; }
+        .m-btn { width: 100%; padding: 25px; background: gold; font-weight: bold; font-size: 2rem; border-radius: 20px; border: none; color: #000; box-shadow: 0 5px 0 #b8860b; }
 
         /* ЭКРАН ТРЯСИ */
-        #shake-screen { flex-direction: column; align-items: center; justify-content: center; }
-        #shake-screen h1 { font-size: 6rem; color: gold; margin: 20px 0; animation: pulse 0.5s infinite alternate; }
+        #shake-screen { flex-direction: column; align-items: center; justify-content: center; background: #1b5e20; }
+        #shake-screen h1 { font-size: 5rem; color: gold; margin: 10px 0; animation: pulse 0.4s infinite alternate; }
         @keyframes pulse { from { transform: scale(1); } to { transform: scale(1.1); } }
 
         /* ПОБЕДА */
-        #victory-screen { background: rgba(0,0,0,0.9); z-index: 100; flex-direction: column; align-items: center; justify-content: center; }
+        #victory-screen { background: rgba(0,0,0,0.95); z-index: 100; flex-direction: column; align-items: center; justify-content: center; }
         canvas { position: absolute; top: 0; left: 0; pointer-events: none; }
     </style>
 </head>
@@ -49,10 +49,7 @@
     <audio id="fanfare" src="https://actions.google.com/sounds/v1/human_voices/applause_clapping_and_cheering.ogg"></audio>
 
     <div id="lobby" class="page">
-        <div class="header-title">
-            <h1>СОЛЛАЛЬ 2026</h1>
-            <h2>УРАЛЬСКИЕ СКАЧКИ</h2>
-        </div>
+        <div class="header-title"><h1>СОЛЛАЛЬ 2026</h1><h2>УРАЛЬСКИЕ СКАЧКИ</h2></div>
         <div class="qr-wrap"><div id="qrcode"></div></div>
         <div id="team-list" style="margin-top: 30px; display: flex; gap: 15px;"></div>
     </div>
@@ -65,33 +62,35 @@
 
     <div id="victory-screen" class="page">
         <canvas id="fireworks"></canvas>
-        <h1 style="color:red; font-size:12rem; margin:0; z-index: 101;">ФИНИШ</h1>
-        <h2 style="font-size:4rem; z-index: 101;">Победила команда: <span id="win-name" style="color:gold;"></span></h2>
-        <div id="admin-reset-btn" style="z-index: 102; margin-top: 50px;"></div>
+        <h1 style="color:red; font-size:10rem; margin:0; z-index: 101; text-shadow: 0 0 20px red;">ФИНИШ</h1>
+        <h2 style="font-size:3.5rem; z-index: 101; color: white;">Победила команда: <span id="win-name" style="color:gold;"></span></h2>
+        <div id="admin-reset-btn" style="z-index: 102; margin-top: 40px;"></div>
     </div>
 
     <div id="mobile" class="page">
         <div id="m-setup">
-            <h2 style="color:gold; font-size: 2.5rem;">ВЫБЕРИ СТОЛ</h2>
+            <h2 style="color:gold; font-size: 2.2rem;">ВЫБЕРИ СТОЛ</h2>
             <div id="table-selection" class="table-grid"></div>
-            <input type="text" id="m-name" class="m-in" placeholder="Название команды">
-            <button onclick="join()" class="m-btn">ПОДКЛЮЧИТЬСЯ</button>
+            <input type="text" id="m-name" class="m-in" placeholder="Имя команды">
+            <button onclick="requestPermissionAndJoin()" class="m-btn">ПОДКЛЮЧИТЬСЯ</button>
         </div>
         <div id="shake-screen" class="page">
             <h1 id="m-status-text">ТРЯСИ!</h1>
-            <div style="font-size: 12rem;">🏇</div>
-            <p style="color: gold; font-size: 1.5rem;">ЭКРАН ЗАБЛОКИРОВАН</p>
+            <div style="font-size: 10rem;">🏇</div>
+            <p style="color: #fff; font-size: 1.2rem; opacity: 0.8;">ЭКРАН ЗАФИКСИРОВАН</p>
         </div>
     </div>
 
-    <div id="admin-screen" class="page" style="background: #222; padding: 20px;">
-        <h2>АДМИН</h2>
-        Столов: <input type="number" id="adm-c" value="7" style="width:50px; font-size: 1.5rem;">
-        Лимит: <input type="number" id="adm-l" value="3" style="width:50px; font-size: 1.5rem;">
-        <button onclick="socket.emit('adminConfig', {totalTables: document.getElementById('adm-c').value, maxPlayers: document.getElementById('adm-l').value})">OK</button>
-        <hr>
-        <button id="start-btn" onclick="socket.emit('adminStartCountdown')" style="width:100%; padding:40px; background: green; color:white; font-size:2rem; border-radius:20px;" disabled>СТАРТ</button>
-        <button onclick="socket.emit('restart')" style="margin-top: 30px; width:100%; padding:10px; background: red; color:white;">СБРОС ВСЕГО</button>
+    <div id="admin-screen" class="page" style="background: #222; padding: 25px;">
+        <h2 style="color:gold">АДМИН-ПАНЕЛЬ</h2>
+        <div style="background:#333; padding:15px; border-radius:10px; margin-bottom:20px;">
+            Столов: <input type="number" id="adm-c" value="7" style="width:50px;">
+            Лимит: <input type="number" id="adm-l" value="3" style="width:50px;">
+            <button onclick="socket.emit('adminConfig', {totalTables: document.getElementById('adm-c').value, maxPlayers: document.getElementById('adm-l').value})">OK</button>
+        </div>
+        <button id="start-btn" onclick="socket.emit('adminStartCountdown')" style="width:100%; padding:40px; background:gray; color:white; font-size:2rem; border:none; border-radius:20px;" disabled>ЖДЕМ КОМАНДЫ</button>
+        <div id="adm-stats" style="margin-top:20px; font-family: sans-serif;"></div>
+        <button onclick="socket.emit('restart')" style="margin-top:auto; color:red; background:none; border:1px solid red; padding:10px; cursor:pointer;">СБРОС ВСЕГО</button>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
@@ -101,32 +100,61 @@
         const isScreen = params.has('screen');
         const isAdmin = params.has('admin');
 
+        // Инициализация
         if(isScreen) {
             document.getElementById('lobby').style.display = 'flex';
             new QRCode(document.getElementById("qrcode"), { text: window.location.origin, width: 400, height: 400 });
+            window.onclick = () => { document.getElementById('fanfare').load(); }; // Для снятия блокировки звука
         } else if(isAdmin) {
             document.getElementById('admin-screen').style.display = 'flex';
-            document.getElementById('admin-reset-btn').innerHTML = `<button onclick="socket.emit('restart')" style="padding:20px 50px; font-size:2rem; background:gold; border-radius:15px; font-weight:bold; cursor:pointer;">ЗАНОВО</button>`;
+            document.getElementById('admin-reset-btn').innerHTML = `<button onclick="socket.emit('restart')" style="padding:15px 40px; font-size:1.8rem; background:gold; border:none; border-radius:10px; font-weight:bold; cursor:pointer;">ЗАНОВО</button>`;
         } else {
             document.getElementById('mobile').style.display = 'block';
         }
 
-        let selectedTable = null;
-        function join() {
-            if(!selectedTable) return alert("Выбери стол!");
+        // Запрос прав на датчик (iOS 13+) и вход
+        async function requestPermissionAndJoin() {
+            if (!selectedTable) return alert("Выбери стол!");
+            
+            if (typeof DeviceMotionEvent.requestPermission === 'function') {
+                try {
+                    const permission = await DeviceMotionEvent.requestPermission();
+                    if (permission !== 'granted') {
+                        alert('Для игры нужен доступ к датчику движения!');
+                        return;
+                    }
+                } catch (err) { console.error(err); }
+            }
+            
             socket.emit('join', { tableId: selectedTable, teamName: document.getElementById('m-name').value });
         }
 
         socket.on('joinSuccess', () => {
+            isJoined = true;
             document.getElementById('m-setup').style.display = 'none';
             document.getElementById('shake-screen').style.display = 'flex';
         });
 
+        let selectedTable = null;
+        let isJoined = false;
+
         socket.on('updateState', (state) => {
+            const hasTeams = Object.keys(state.tables).length > 0;
+
             if(isAdmin) {
-                document.getElementById('start-btn').disabled = Object.keys(state.tables).length === 0 || state.status !== 'LOBBY';
+                const btn = document.getElementById('start-btn');
+                if(!hasTeams) {
+                    btn.disabled = true; btn.style.background = 'gray'; btn.innerText = 'ЖДЕМ КОМАНДЫ';
+                } else if(state.status === 'LOBBY') {
+                    btn.disabled = false; btn.style.background = 'green'; btn.innerText = 'СТАРТ';
+                } else {
+                    btn.disabled = true; btn.style.background = '#444'; btn.innerText = 'ИГРА ИДЕТ';
+                }
+                document.getElementById('adm-stats').innerHTML = Object.values(state.tables)
+                    .map(t => `Стол ${t.id}: ${t.name} (${t.count}/${state.maxPlayersPerTable})`).join('<br>');
             }
-            if(!isScreen && !isAdmin) {
+
+            if(!isScreen && !isAdmin && !isJoined) {
                 const grid = document.getElementById('table-selection');
                 if(grid.children.length !== state.totalTables) {
                     grid.innerHTML = '';
@@ -144,6 +172,7 @@
                     }
                 }
             }
+
             if(isScreen) {
                 if(state.status === 'LOBBY') {
                     document.getElementById('lobby').style.display = 'flex';
@@ -185,35 +214,45 @@
 
         socket.on('gameRestarted', () => location.reload());
 
+        // Обработка тряски
+        let lastShake = 0;
         window.addEventListener('devicemotion', (e) => {
-            let a = e.accelerationIncludingGravity;
-            if(Math.abs(a.x)+Math.abs(a.y)+Math.abs(a.z) > 25) socket.emit('shake');
+            if (!isJoined) return;
+            const a = e.accelerationIncludingGravity;
+            if (!a) return;
+            const force = Math.abs(a.x) + Math.abs(a.y) + Math.abs(a.z);
+            const now = Date.now();
+            if (force > 25 && (now - lastShake > 100)) {
+                socket.emit('shake');
+                lastShake = now;
+            }
         });
 
-        // ФЕЙЕРВЕРК
         function startFireworks() {
             const canvas = document.getElementById('fireworks');
             const ctx = canvas.getContext('2d');
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
             let particles = [];
-            function createPart() {
-                for(let i=0; i<10; i++) particles.push({
+            function create() {
+                for(let i=0; i<15; i++) particles.push({
                     x: Math.random()*canvas.width, y: canvas.height,
-                    vx: Math.random()*4-2, vy: Math.random()*-10-5,
-                    c: `hsl(${Math.random()*360}, 100%, 50%)`, r: 3
+                    vx: Math.random()*4-2, vy: Math.random()*-15-5,
+                    c: `hsl(${Math.random()*360}, 100%, 50%)`, r: Math.random()*4+2
                 });
             }
-            setInterval(createPart, 100);
+            const interval = setInterval(create, 150);
+            setTimeout(() => clearInterval(interval), 5000);
+
             function loop() {
                 ctx.clearRect(0,0,canvas.width, canvas.height);
                 particles.forEach((p, i) => {
-                    p.x += p.vx; p.y += p.vy; p.vy += 0.1;
+                    p.x += p.vx; p.y += p.vy; p.vy += 0.15;
                     ctx.fillStyle = p.c;
                     ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctx.fill();
                     if(p.y > canvas.height) particles.splice(i, 1);
                 });
-                requestAnimationFrame(loop);
+                if(particles.length > 0) requestAnimationFrame(loop);
             }
             loop();
         }
