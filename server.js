@@ -8,13 +8,12 @@ const io = new Server(server);
 
 app.use(express.static(__dirname + '/public'));
 
-// Храним состояние игры
 let gameState = {
     status: 'LOBBY',
     tables: {}, 
     countdown: 5,
     winner: null,
-    totalTables: 7 // Это значение теперь сохраняется при сбросе
+    totalTables: 7 
 };
 
 const broadcast = () => io.emit('updateState', gameState);
@@ -52,7 +51,6 @@ io.on('connection', (socket) => {
         }
     });
 
-    // Админ меняет количество столов
     socket.on('adminSetTables', (num) => {
         gameState.totalTables = parseInt(num) || 7;
         broadcast();
@@ -73,13 +71,11 @@ io.on('connection', (socket) => {
         }, 1000);
     });
 
-    // СБРОС: очищаем столы и победителя, но ОСТАВЛЯЕМ totalTables
     socket.on('restart', () => {
         gameState.status = 'LOBBY';
         gameState.tables = {};
         gameState.winner = null;
         gameState.countdown = 5;
-        // gameState.totalTables НЕ трогаем
         io.emit('gameRestarted');
         broadcast();
     });
