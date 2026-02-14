@@ -6,90 +6,66 @@
     <title>Уральские Скачки 2026</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
-        :root {
-            --kr-red: #b22222; --kr-gold: #ffd700;
-            --lane-1: #ff4d4d; --lane-2: #4d94ff; --lane-3: #ffffff; 
-            --lane-4: #ffdb4d; --lane-5: #b366ff; --lane-6: #ff944d;
-        }
+        :root { --kr-gold: #ffd700; --lane-col: rgba(255,255,255,0.3); }
         body { margin: 0; padding: 0; background: #000; font-family: 'Arial Black', sans-serif; overflow: hidden; color: white; }
 
-        /* LOBBY */
-        #lobby { 
-            display: none; width: 100vw; height: 100vh; 
-            background: radial-gradient(circle, #4a0000 0%, #000 100%);
-            flex-direction: column; align-items: center; justify-content: center; 
-        }
-        .qr-box { background: white; padding: 15px; border-radius: 10px; margin-bottom: 20px; }
-        #team-list { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; max-width: 80%; }
-        .team-tag { background: var(--kr-gold); color: #000; padding: 15px 25px; border-radius: 8px; font-weight: bold; font-size: 1.5rem; animation: pop 0.3s ease-out; }
-        @keyframes pop { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        /* ЭКРАНЫ */
+        #lobby, #stadium, #victory-screen, #mobile { display: none; width: 100vw; height: 100vh; }
+        
+        /* ЛОББИ */
+        #lobby { flex-direction: column; align-items: center; justify-content: center; background: radial-gradient(circle, #4a0000 0%, #000 100%); }
+        .qr-box { background: white; padding: 15px; border-radius: 10px; margin: 20px; }
+        #team-list { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+        .team-tag { background: var(--kr-gold); color: #000; padding: 10px 20px; border-radius: 5px; font-weight: bold; }
 
-        /* STADIUM */
-        #stadium { display: none; width: 100vw; height: 100vh; flex-direction: column; background: #1a3317; position: relative; }
+        /* СТАДИОН */
+        #stadium { flex-direction: column; background: #1a3317; position: relative; }
         #race-field { 
             flex: 1; position: relative; overflow: hidden; 
-            background: linear-gradient(to bottom, #4facfe 0%, #00f2fe 30%, #ffffff 30%, #2d5a27 31%);
-            perspective: 1200px;
+            background: linear-gradient(to bottom, #4facfe 0%, #ffffff 30%, #2d5a27 31%);
+            perspective: 1000px;
         }
-        #tracks-container {
-            position: absolute; bottom: -15%; left: 50%; width: 150%; height: 85%; 
-            transform: translateX(-50%) rotateX(65deg); transform-origin: bottom center;
-            display: flex; background: #444; border: 15px solid white;
-        }
-        .lane { flex: 1; border-right: 5px solid rgba(255,255,255,0.4); }
 
-        /* HORSE */
-        .horse {
-            position: absolute; transform: translateX(-50%) translateY(-50%);
-            display: flex; flex-direction: column; align-items: center;
-            transition: all 0.2s cubic-bezier(0.18, 0.89, 0.32, 1.28); z-index: 100;
+        /* ДОРОЖКИ (Удлиненные) */
+        #tracks-container {
+            position: absolute; bottom: -20%; left: 50%; width: 160%; height: 100%; 
+            transform: translateX(-50%) rotateX(60deg); transform-origin: bottom center;
+            display: flex; background: #333; border: 15px solid white;
         }
-        .horse-emoji { font-size: 5rem; transform: scaleX(-1); filter: drop-shadow(0 15px 10px rgba(0,0,0,0.6)); }
-        .horse-label { 
-            background: white; color: #000; padding: 5px 15px; border-radius: 10px; 
-            font-size: 1.3rem; border: 3px solid #000; margin-bottom: -10px; white-space: nowrap; font-weight: bold;
-        }
+        .lane { flex: 1; border-right: 4px solid var(--lane-col); position: relative; }
+        .lane::before { content: "FINISH"; position: absolute; top: 0; width: 100%; text-align: center; color: white; font-size: 10px; background: red; }
+
+        /* ЛОШАДИ */
+        .horse { position: absolute; transform: translateX(-50%) translateY(-50%); display: flex; flex-direction: column; align-items: center; z-index: 100; transition: all 0.1s linear; }
+        .horse-emoji { font-size: 5rem; transform: scaleX(-1); filter: drop-shadow(0 10px 5px rgba(0,0,0,0.5)); }
+        .horse-label { background: white; color: black; padding: 2px 10px; border-radius: 5px; font-size: 1.2rem; border: 2px solid black; white-space: nowrap; }
 
         /* OVERLAYS */
-        #countdown-overlay {
-            position: fixed; top:0; left:0; width:100%; height:100%;
-            background: rgba(0,0,0,0.4); display: none; align-items: center; justify-content: center;
-            font-size: 25rem; color: var(--kr-gold); z-index: 5000; text-shadow: 0 0 40px #000;
-        }
-        #victory-screen {
-            position: fixed; top:0; left:0; width:100%; height:100%;
-            background: rgba(0,0,0,0.95); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 9999;
-        }
+        #countdown-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; font-size: 20rem; color: var(--kr-gold); z-index: 5000; }
+        #victory-screen { flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.9); z-index: 9999; }
 
-        /* MOBILE */
-        #mobile { display: none; height: 100vh; background: #1b5e20; text-align: center; padding: 20px; box-sizing: border-box; }
-        .m-input { width: 100%; padding: 20px; font-size: 1.5rem; border-radius: 10px; border: none; margin: 10px 0; box-sizing: border-box; }
-        #energy-bar { width: 100%; height: 50px; background: #222; border-radius: 25px; margin: 25px auto; border: 4px solid white; overflow: hidden; }
-        #energy-fill { width: 0%; height: 100%; background: linear-gradient(90deg, #ff0, #f00); transition: 0.1s; }
+        /* МОБИЛКА */
+        #mobile { text-align: center; padding: 20px; background: #1b5e20; box-sizing: border-box; }
+        .m-input { width: 100%; padding: 15px; margin: 10px 0; font-size: 1.2rem; border-radius: 10px; border: none; }
+        #energy-bar { width: 100%; height: 40px; background: #222; border: 3px solid white; border-radius: 20px; overflow: hidden; margin: 20px 0; }
+        #energy-fill { width: 0%; height: 100%; background: gold; transition: 0.1s; }
         
-        /* ADMIN */
-        #admin-panel { position: fixed; bottom: 20px; left: 20px; z-index: 10000; display: none; }
-        .admin-btn { padding: 20px 40px; background: #f00; color: #fff; border-radius: 10px; border: none; font-size: 1.2rem; font-weight: bold; cursor: pointer; }
+        #admin-panel { position: fixed; bottom: 10px; left: 10px; z-index: 10000; display: none; }
     </style>
 </head>
 <body>
 
     <div id="lobby">
-        <h1 style="color: var(--kr-gold); font-size: 3.5rem; margin-bottom: 20px;">СОЛЬНАЛЬ 2026: УРАЛЬСКИЕ СКАЧКИ</h1>
+        <h1 style="color: var(--kr-gold);">ГОД ОГНЕННОЙ ЛОШАДИ 2026</h1>
         <div class="qr-box" id="player-qr"></div>
-        <h2 style="color: white; margin-bottom: 40px;">РЕГИСТРИРУЙТЕ СВОИ СТОЛЫ!</h2>
         <div id="team-list"></div>
     </div>
 
     <div id="stadium">
         <div id="race-field">
             <div id="tracks-container">
-                <div class="lane" style="background:var(--lane-1)"></div>
-                <div class="lane" style="background:var(--lane-2)"></div>
-                <div class="lane" style="background:var(--lane-3)"></div>
-                <div class="lane" style="background:var(--lane-4)"></div>
-                <div class="lane" style="background:var(--lane-5)"></div>
-                <div class="lane" style="background:var(--lane-6)"></div>
+                <div class="lane"></div><div class="lane"></div><div class="lane"></div>
+                <div class="lane"></div><div class="lane"></div><div class="lane"></div>
             </div>
             <div id="horses-layer" style="position: absolute; top:0; left:0; width:100%; height:100%;"></div>
         </div>
@@ -97,34 +73,31 @@
     </div>
 
     <div id="victory-screen">
-        <h1 style="color: gold; font-size: 6rem;">ПОБЕДИТЕЛЬ!</h1>
-        <div id="winner-name" style="font-size: 8rem; margin: 20px 0;"></div>
-        <button onclick="socket.emit('restart')" style="padding:20px 50px; font-size: 2rem; border-radius: 15px; cursor: pointer; background: gold;">НОВАЯ ИГРА</button>
+        <h1 style="color: gold; font-size: 4rem;">ПОБЕДИТЕЛЬ!</h1>
+        <div id="winner-name" style="font-size: 6rem;"></div>
+        <button onclick="socket.emit('restart')" style="padding: 20px; margin-top: 20px;">НОВАЯ ИГРА</button>
     </div>
 
     <div id="mobile">
         <div id="m-setup">
-            <h1 style="color: gold; font-size: 2.5rem;">ВАШ СТОЛ?</h1>
-            <input type="number" id="m-table" class="m-input" placeholder="НОМЕР СТОЛА (1-7)">
-            <input type="text" id="m-name" class="m-input" placeholder="ИМЯ КОМАНДЫ">
-            <button onclick="mJoin()" style="background: gold; padding: 25px; width: 100%; border-radius: 15px; font-size: 2rem; border: none; margin-top: 20px; font-weight: bold;">ГОТОВ!</button>
+            <h2>РЕГИСТРАЦИЯ СТОЛА</h2>
+            <input type="number" id="m-table" class="m-input" placeholder="НОМЕР СТОЛА">
+            <input type="text" id="m-name" class="m-input" placeholder="НАЗВАНИЕ КОМАНДЫ">
+            <button onclick="mJoin()" style="padding: 20px; width: 100%; background: gold; border: none; font-weight: bold;">ГОТОВ</button>
         </div>
         <div id="m-race" style="display:none;">
-            <h1 id="m-team-name" style="color: gold; font-size: 2.5rem; margin-bottom: 0;"></h1>
+            <h2 id="m-team-display"></h2>
             <div id="energy-bar"><div id="energy-fill"></div></div>
-            <h2 id="m-status" style="font-size: 1.8rem;">ЖДЕМ СТАРТА...</h2>
+            <p id="m-status">ЖДЕМ СТАРТА...</p>
         </div>
     </div>
 
-    <div id="admin-panel">
-        <button class="admin-btn" onclick="socket.emit('adminStartCountdown')">СТАРТ ГОНКИ</button>
-    </div>
+    <div id="admin-panel"><button onclick="socket.emit('adminStartCountdown')" style="padding: 15px; background: red; color: white;">СТАРТ</button></div>
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const params = new URLSearchParams(window.location.search);
-        const isAdmin = params.has('admin');
-        const isScreen = params.has('screen');
+        const isAdmin = params.has('admin'), isScreen = params.has('screen');
         const socket = io({ query: { admin: isAdmin } });
 
         if (isScreen) {
@@ -138,20 +111,16 @@
         function mJoin() {
             const tableId = document.getElementById('m-table').value;
             const teamName = document.getElementById('m-name').value;
-            if(!tableId) return alert("Введите номер стола!");
-            
+            if(!tableId) return alert("Введите стол");
             socket.emit('join', { tableId, teamName });
             document.getElementById('m-setup').style.display = 'none';
             document.getElementById('m-race').style.display = 'block';
-            document.getElementById('m-team-name').innerText = teamName || "Стол "+tableId;
+            document.getElementById('m-team-display').innerText = teamName || "Стол "+tableId;
 
-            if (window.DeviceMotionEvent && typeof DeviceMotionEvent.requestPermission === 'function') {
-                DeviceMotionEvent.requestPermission();
-            }
+            if (window.DeviceMotionEvent && typeof DeviceMotionEvent.requestPermission === 'function') DeviceMotionEvent.requestPermission();
             window.addEventListener('devicemotion', (e) => {
                 let a = e.accelerationIncludingGravity;
-                let force = Math.abs(a.x) + Math.abs(a.y) + Math.abs(a.z);
-                if (force > 25) {
+                if (Math.abs(a.x) + Math.abs(a.y) + Math.abs(a.z) > 25) {
                     socket.emit('shake');
                     document.getElementById('energy-fill').style.width = '100%';
                     setTimeout(() => document.getElementById('energy-fill').style.width = '0%', 100);
@@ -165,75 +134,45 @@
                     document.getElementById('lobby').style.display = 'flex';
                     document.getElementById('stadium').style.display = 'none';
                     document.getElementById('victory-screen').style.display = 'none';
-                    
-                    // Отрисовка всех зарегистрированных столов
-                    const list = document.getElementById('team-list');
-                    list.innerHTML = '';
-                    Object.values(state.tables).forEach(t => {
-                        const div = document.createElement('div');
-                        div.className = 'team-tag';
-                        div.innerText = t.name;
-                        list.appendChild(div);
-                    });
+                    document.getElementById('team-list').innerHTML = Object.values(state.tables).map(t => `<div class="team-tag">${t.name}</div>`).join('');
                 }
-                
                 if (state.status === 'COUNTDOWN' || state.status === 'RACING' || state.status === 'FINISHED') {
                     document.getElementById('lobby').style.display = 'none';
                     document.getElementById('stadium').style.display = 'flex';
+                    document.getElementById('countdown-overlay').style.display = (state.status === 'COUNTDOWN') ? 'flex' : 'none';
                     renderHorses(state.tables);
-                    
-                    const ov = document.getElementById('countdown-overlay');
-                    if (state.status === 'COUNTDOWN') {
-                        ov.style.display = 'flex';
-                    } else {
-                        ov.style.display = 'none';
-                    }
                 }
             } else {
-                const statusText = document.getElementById('m-status');
-                if (state.status === 'RACING') statusText.innerText = "ТРЯСИ ТЕЛЕФОН!!!";
-                if (state.status === 'FINISHED') statusText.innerText = "ФИНИШ!";
+                document.getElementById('m-status').innerText = state.status === 'RACING' ? "ТРЯСИ!!!" : "ПРИГОТОВИТЬСЯ...";
             }
         });
 
         function renderHorses(tables) {
             const layer = document.getElementById('horses-layer');
             layer.innerHTML = '';
-            
-            // Проходим по всем столам в объекте и рисуем каждого
             Object.values(tables).forEach(t => {
                 const laneIdx = (parseInt(t.id) - 1) % 6;
                 const progress = t.score / 100;
-                
-                const startX = (laneIdx + 0.5) * (100 / 6);
-                const horizonX = 50; 
+                const startX = (laneIdx + 0.5) * (100 / 6), horizonX = 50;
                 const currentX = startX + (horizonX - startX) * (progress * 0.85);
-                const currentY = 85 - (85 - 32) * progress;
+                const currentY = 85 - (85 - 32) * progress; // 32 - линия горизонта
+                const scale = 1.7 - progress;
 
                 const div = document.createElement('div');
                 div.className = 'horse';
-                div.style.left = currentX + '%';
-                div.style.top = currentY + '%';
-                
-                const scale = 1.7 - (progress * 1.0);
+                div.style.left = currentX + '%'; div.style.top = currentY + '%';
                 div.style.transform = `translateX(-50%) translateY(-50%) scale(${scale})`;
-                div.style.zIndex = Math.floor(200 - t.score);
-
-                div.innerHTML = `
-                    <div class="horse-label">${t.name}</div>
-                    <div class="horse-emoji">🏇</div>
-                `;
+                div.innerHTML = `<div class="horse-label">${t.name}</div><div class="horse-emoji">🏇</div>`;
                 layer.appendChild(div);
             });
         }
 
-        socket.on('winner', (data) => {
+        socket.on('winner', (d) => {
             if (isScreen) {
                 document.getElementById('victory-screen').style.display = 'flex';
-                document.getElementById('winner-name').innerText = data.name;
+                document.getElementById('winner-name').innerText = d.name;
             }
         });
-
         socket.on('gameRestarted', () => location.reload());
     </script>
 </body>
