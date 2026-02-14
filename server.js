@@ -10,32 +10,34 @@ app.use(express.static(__dirname + '/public'));
 
 let gameState = {
     status: 'LOBBY',
-    tables: {}, // { tableId: { name, score, count } }
+    tables: {}, 
     countdown: 5,
     winner: null,
-    totalTables: 7 // Настройка по умолчанию
+    totalTables: 7 
 };
 
 const broadcast = () => io.emit('updateState', gameState);
 
 io.on('connection', (socket) => {
+    // Сразу шлем текущее состояние новому игроку
+    socket.emit('updateState', gameState);
+
     socket.on('join', ({ tableId, teamName }) => {
         if (!tableId) return;
         socket.tableId = tableId;
         if (!gameState.tables[tableId]) {
             gameState.tables[tableId] = { id: tableId, name: teamName || `Стол ${tableId}`, score: 0, count: 1 };
         } else {
-            gameState.tables[tableId].count++; // Считаем участников в команде
+            gameState.tables[tableId].count++;
         }
         broadcast();
     });
 
     socket.on('shake', () => {
-        // Если экран не активен (blur), shake не придет с клиента
         if (gameState.status !== 'RACING' || !socket.tableId) return;
         let t = gameState.tables[socket.tableId];
         if (t && t.score < 100) {
-            t.score += 0.1; // СКОРОСТЬ ЕЩЕ НИЖЕ
+            t.score += 0.15; // Скорость (медленно)
             if (t.score >= 100) {
                 t.score = 100;
                 gameState.status = 'FINISHED';
@@ -45,9 +47,8 @@ io.on('connection', (socket) => {
         }
     });
 
-    // Админские команды
     socket.on('adminSetTables', (num) => {
-        gameState.totalTables = num;
+        gameState.totalTables = parseInt(num);
         broadcast();
     });
 
@@ -74,4 +75,4 @@ io.on('connection', (socket) => {
 });
 
 setInterval(() => { if (gameState.status === 'RACING') broadcast(); }, 50);
-server.listen(3000, () => console.log('READY ON 3000'));
+server.listen(3000, () => console.log('SERVER RUNNING'));
