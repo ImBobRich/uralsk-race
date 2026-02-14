@@ -23,15 +23,16 @@ io.on('connection', (socket) => {
     socket.emit('updateState', gameState);
 
     socket.on('join', ({ tableId, teamName }) => {
-        const currentCount = gameState.tables[tableId] ? gameState.tables[tableId].count : 0;
-        if (currentCount >= gameState.maxPlayersPerTable) return socket.emit('errorMsg', 'Команда полная!');
-        
-        socket.tableId = tableId;
         if (!gameState.tables[tableId]) {
             gameState.tables[tableId] = { id: tableId, name: teamName || `Стол ${tableId}`, score: 0, count: 1 };
         } else {
-            gameState.tables[tableId].count++;
+            if (gameState.tables[tableId].count < gameState.maxPlayersPerTable) {
+                gameState.tables[tableId].count++;
+            } else {
+                return socket.emit('errorMsg', 'Команда полная');
+            }
         }
+        socket.tableId = tableId;
         socket.emit('joinSuccess');
         broadcast();
     });
@@ -40,13 +41,13 @@ io.on('connection', (socket) => {
         if (gameState.status !== 'RACING' || !socket.tableId) return;
         let t = gameState.tables[socket.tableId];
         if (t && t.score < 100) {
-            t.score += 0.4; // Чуть увеличил шаг для динамики
+            t.score += 0.5; 
             if (t.score >= 100) {
                 t.score = 100;
                 gameState.status = 'FINISHED';
                 gameState.winner = t.name;
-                broadcast();
             }
+            broadcast();
         }
     });
 
@@ -63,7 +64,10 @@ io.on('connection', (socket) => {
         broadcast();
         const timer = setInterval(() => {
             gameState.countdown--;
-            if (gameState.countdown <= 0) { clearInterval(timer); gameState.status = 'RACING'; }
+            if (gameState.countdown <= 0) { 
+                clearInterval(timer); 
+                gameState.status = 'RACING'; 
+            }
             broadcast();
         }, 1000);
     });
@@ -77,5 +81,4 @@ io.on('connection', (socket) => {
     });
 });
 
-setInterval(() => { if (gameState.status === 'RACING') broadcast(); }, 40);
-server.listen(3000, () => console.log('SERVER READY'));
+server.listen(3000, () => console.log('SERVER RUNNING ON PORT 3000'));
