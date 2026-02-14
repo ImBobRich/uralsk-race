@@ -8,12 +8,7 @@ const io = new Server(server);
 
 app.use(express.static(__dirname + '/public'));
 
-let gameState = {
-    status: 'LOBBY', 
-    tables: {}, 
-    countdown: 5,
-    winner: null
-};
+let gameState = { status: 'LOBBY', tables: {}, countdown: 5, winner: null };
 
 const broadcast = () => io.emit('updateState', gameState);
 
@@ -31,12 +26,12 @@ io.on('connection', (socket) => {
         if (gameState.status !== 'RACING' || !socket.tableId) return;
         let t = gameState.tables[socket.tableId];
         if (t && t.score < 100) {
-            t.score += 0.4; // Чуть быстрее для динамики
+            t.score += 0.2; // СКОРОСТЬ УМЕНЬШЕНА В 2 РАЗА
             if (t.score >= 100) {
                 t.score = 100;
                 gameState.status = 'FINISHED';
                 gameState.winner = t.name;
-                broadcast(); // Финальный апдейт со статусом FINISHED
+                broadcast();
             }
         }
     });
@@ -46,7 +41,6 @@ io.on('connection', (socket) => {
         gameState.status = 'COUNTDOWN';
         gameState.countdown = 5;
         broadcast();
-
         const timer = setInterval(() => {
             gameState.countdown--;
             if (gameState.countdown <= 0) {
@@ -64,9 +58,5 @@ io.on('connection', (socket) => {
     });
 });
 
-// Периодический апдейт во время гонки (heartbeat)
-setInterval(() => {
-    if (gameState.status === 'RACING') broadcast();
-}, 50);
-
-server.listen(3000, () => console.log('SERVER WORKING'));
+setInterval(() => { if (gameState.status === 'RACING') broadcast(); }, 50);
+server.listen(3000, () => console.log('READY'));
