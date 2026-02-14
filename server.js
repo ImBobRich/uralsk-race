@@ -30,7 +30,7 @@ io.on('connection', (socket) => {
         if (gameState.status !== 'RACING' || !socket.tableId) return;
         const table = gameState.tables[socket.tableId];
         if (table && table.score < 100) {
-            table.score += 0.1; // Оптимальная скорость
+            table.score += 0.12; 
             if (table.score >= 100) {
                 table.score = 100;
                 gameState.status = 'FINISHED';
@@ -51,11 +51,10 @@ io.on('connection', (socket) => {
             if (gameState.countdown <= 0) {
                 clearInterval(timer);
                 gameState.status = 'RACING';
-                // Интервал обновления экрана во время гонки (50мс для плавности)
                 const heartBeat = setInterval(() => {
                     sync();
                     if (gameState.status !== 'RACING') clearInterval(heartBeat);
-                }, 50);
+                }, 60);
             }
             sync();
         }, 1000);
@@ -68,4 +67,4 @@ io.on('connection', (socket) => {
     });
 });
 
-server.listen(3000, () => console.log('OK: 3000'));
+server.listen(3000, () => console.log('Server started'));
