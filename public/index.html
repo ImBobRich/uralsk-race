@@ -17,68 +17,58 @@
             background-size: cover; background-position: center;
         }
 
-        /* ОБНОВЛЕННЫЙ ОГНЕННЫЙ СТИЛЬ: Белые буквы + огненное свечение */
         .header-title { 
-            color: #ffffff; /* Чисто белый для читаемости */
-            font-size: 5.5rem; 
-            text-align: center; 
-            margin-bottom: 40px; 
-            text-transform: uppercase; 
-            letter-spacing: 5px;
-            /* Золотистый контур для четкости */
-            -webkit-text-stroke: 2px #ffd700;
+            color: #ffffff; font-size: 5.5rem; text-align: center; margin-bottom: 40px; 
+            text-transform: uppercase; letter-spacing: 5px; -webkit-text-stroke: 2px #ffd700;
             animation: fire-flicker 1.5s infinite alternate;
         }
 
         @keyframes fire-flicker {
-            0% { 
-                text-shadow: 0 0 10px #ff0000, 0 0 20px #ff4500, 0 0 30px #ff8c00, 0 0 40px #ff0000; 
-                transform: scale(1);
-            }
-            100% { 
-                text-shadow: 0 0 20px #ff4500, 0 0 40px #ff8c00, 0 0 60px #ff0000, 0 -10px 30px #ff4500, 0 0 80px #ff0000;
-                transform: scale(1.02);
-            }
+            0% { text-shadow: 0 0 10px #ff0000, 0 0 20px #ff4500, 0 0 30px #ff8c00; transform: scale(1); }
+            100% { text-shadow: 0 0 20px #ff4500, 0 0 40px #ff8c00, 0 0 60px #ff0000; transform: scale(1.02); }
         }
 
         .main-row { display: flex; align-items: center; justify-content: center; gap: 80px; width: 90%; }
-        .qr-wrap { background: white; padding: 20px; border-radius: 25px; border: 12px solid gold; box-shadow: 0 0 50px rgba(0,0,0,0.5); }
+        .qr-wrap { background: white; padding: 20px; border-radius: 25px; border: 12px solid gold; }
         .plate { background: rgba(0,0,0,0.85); padding: 40px; border: 4px solid gold; border-radius: 30px; min-width: 450px; }
-        .plate h2 { color: gold; margin: 0 0 25px 0; font-size: 2.5rem; border-bottom: 3px solid gold; padding-bottom: 10px; }
-        .plate ol { font-size: 1.8rem; line-height: 1.6; margin: 0; padding-left: 35px; }
-        .plate li { margin-bottom: 20px; }
+        .plate h2 { color: gold; margin: 0 0 25px 0; font-size: 2.5rem; border-bottom: 3px solid gold; }
 
         /* СТАДИОН */
         #stadium { flex-direction: column; background: #1a3c15; }
         .lane { flex: 1; position: relative; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; overflow: hidden; }
-        .finish-checkered { 
-            position: absolute; right: 60px; top: 0; bottom: 0; width: 50px; 
-            background-color: #fff; background-image: linear-gradient(45deg, #000 25%, transparent 25%, transparent 75%, #000 75%, #000), linear-gradient(45deg, #000 25%, transparent 25%, transparent 75%, #000 75%, #000);
-            background-size: 20px 20px; border-left: 5px solid gold;
-        }
+        .finish-checkered { position: absolute; right: 60px; top: 0; bottom: 0; width: 50px; background-color: #fff; background-image: linear-gradient(45deg, #000 25%, transparent 25%, transparent 75%, #000 75%, #000), linear-gradient(45deg, #000 25%, transparent 25%, transparent 75%, #000 75%, #000); background-size: 20px 20px; border-left: 5px solid gold; }
         .horse { position: absolute; left: 0; display: flex; align-items: center; transition: left 0.2s linear; }
-        @keyframes gallop { 0%, 100% { transform: translateY(0) scaleX(-1); } 50% { transform: translateY(-15px) scaleX(-1); } }
         .horse-img { font-size: 5rem; animation: gallop 0.5s infinite ease-in-out; }
-        .horse-label { background: #fff; color: #000; padding: 5px 15px; border-radius: 8px; font-weight: bold; border: 3px solid #000; margin-left: -15px; font-size: 1.5rem; white-space: nowrap; }
+        @keyframes gallop { 0%, 100% { transform: translateY(0) scaleX(-1); } 50% { transform: translateY(-15px) scaleX(-1); } }
+        .horse-label { background: #fff; color: #000; padding: 5px 15px; border-radius: 8px; font-weight: bold; border: 3px solid #000; font-size: 1.5rem; white-space: nowrap; }
 
-        .lane:nth-child(1) { background: #f4b4fe; } .lane:nth-child(2) { background: #ffff00; }
-        .lane:nth-child(3) { background: #8eff8e; } .lane:nth-child(4) { background: #4df4ff; }
-        .lane:nth-child(5) { background: #ff8e8e; } .lane:nth-child(6) { background: #cedc00; } .lane:nth-child(7) { background: #ff9900; }
+        /* ПАНЕЛЬ СТАТИСТИКИ (НИЗ ЭКРАНА) */
+        #stats-bar {
+            height: 100px; background: rgba(0,0,0,0.9); border-top: 4px solid gold;
+            display: flex; align-items: center; justify-content: space-around; padding: 0 20px;
+        }
+        .stat-item { text-align: center; }
+        .stat-name { color: gold; font-size: 1.2rem; }
+        .stat-val { font-size: 1.8rem; }
 
         /* МОБИЛКА */
-        #mobile { text-align: center; padding: 20px; background: #1b5e20; overflow: hidden; }
+        #mobile { text-align: center; padding: 20px; background: #1b5e20; }
         .table-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 20px 0; }
-        .t-btn { padding: 18px 5px; background: #fff; color: #000; border-radius: 12px; font-weight: bold; border: 4px solid transparent; font-size: 1.4rem; cursor: pointer; }
-        .t-btn.active { border-color: gold; background: #ffd700; transform: scale(1.05); }
-        .m-in { width: 100%; padding: 16px; margin-bottom: 20px; font-size: 1.2rem; border-radius: 12px; border: none; box-sizing: border-box; text-align: center; }
-        .m-in:disabled { background: #2e4a2e; color: #ccc; }
-        .m-btn { width: 100%; padding: 20px; background: gold; font-weight: bold; font-size: 1.8rem; border-radius: 15px; border: none; color: #000; cursor: pointer; }
+        .t-btn { padding: 18px 5px; background: #fff; color: #000; border-radius: 12px; font-weight: bold; font-size: 1.4rem; cursor: pointer; }
+        .t-btn.active { background: gold; transform: scale(1.05); }
+        .t-btn.full { background: #555; color: #888; cursor: not-allowed; }
+        .m-in { width: 100%; padding: 16px; margin-bottom: 20px; font-size: 1.2rem; border-radius: 12px; border: none; text-align: center; }
+        .m-btn { width: 100%; padding: 20px; background: gold; font-weight: bold; font-size: 1.8rem; border-radius: 15px; border: none; }
+        .m-btn:disabled { background: #888; }
 
-        #lock-overlay { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0); z-index: 999; touch-action: none; }
-
-        #cnt { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 18rem; color: gold; z-index: 100; display: none; text-shadow: 0 0 40px black; }
-        #victory-screen { background: rgba(0,0,0,0.95); z-index: 9999; }
-        #admin-screen { background: #222; padding: 30px; flex-direction: column; overflow-y: auto; text-align: left; }
+        #lock-overlay { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 999; }
+        #victory-screen { background: rgba(0,0,0,0.95); z-index: 9999; text-align: center; }
+        
+        /* АДМИНКА */
+        #admin-screen { background: #222; padding: 30px; flex-direction: column; text-align: left; }
+        .adm-row { display: flex; gap: 20px; margin-bottom: 20px; align-items: center; }
+        .adm-btn-start { padding: 30px; background: green; color: white; width: 100%; font-size: 2rem; border-radius: 15px; cursor: pointer; border: none; }
+        .adm-btn-start:disabled { background: #444; color: #666; cursor: not-allowed; }
     </style>
 </head>
 <body>
@@ -91,51 +81,51 @@
             <div class="qr-wrap"><div id="qrcode"></div></div>
             <div class="plate">
                 <h2>РЕГИСТРАЦИЯ:</h2>
-                <ol>
-                    <li>Выбери номер стола</li>
-                    <li>Напиши имя команды</li>
-                    <li>Тряси и выигрывай!</li>
+                <ol style="font-size: 1.8rem; line-height: 2;">
+                    <li>Выбери номер своего стола</li>
+                    <li>Введи название команды</li>
+                    <li>Тряси телефон быстрее всех!</li>
                 </ol>
             </div>
         </div>
-        <div id="team-list" style="margin-top: 50px; display: flex; flex-wrap: wrap; gap: 15px; justify-content: center;"></div>
+        <div id="team-list" style="margin-top: 40px; display: flex; flex-wrap: wrap; gap: 15px; justify-content: center;"></div>
     </div>
 
     <div id="stadium" class="page">
-        <div id="race-field" style="height:100%; width:100%; display:flex; flex-direction:column;"></div>
-        <div id="cnt">5</div>
+        <div id="race-field" style="flex: 1; display: flex; flex-direction: column;"></div>
+        <div id="stats-bar"></div> <div id="cnt" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 18rem; color: gold; display: none;">5</div>
     </div>
 
     <div id="victory-screen" class="page" style="flex-direction:column; align-items:center; justify-content:center;">
-        <h1 style="color:gold; font-size:5rem; margin:0;">ФИНИШ!</h1>
-        <div id="winner-text" style="font-size:6rem; margin:20px; text-shadow: 0 0 20px gold; color: white;"></div>
-        <button onclick="socket.emit('restart')" style="padding:20px 60px; font-size:2rem; background:gold; border:none; border-radius:15px; font-weight:bold; cursor:pointer;">ЗАНОВО</button>
+        <h1 style="color:gold; font-size:4rem; margin:0;">ПОЗДРАВЛЯЕМ ПОБЕДИТЕЛЯ!</h1>
+        <div id="winner-name-display" style="font-size:7rem; margin:30px; text-shadow: 0 0 30px gold; color: white; text-transform: uppercase;"></div>
+        <div id="admin-restart-area"></div>
     </div>
 
     <div id="mobile" class="page">
         <div id="m-setup">
-            <h2 style="color:gold; font-size: 2.2rem; margin-top: 0;">ВХОД</h2>
+            <h2 style="color:gold; font-size: 2.2rem;">ВХОД В ИГРУ</h2>
             <div id="table-selection" class="table-grid"></div>
-            <input type="text" id="m-name" class="m-in" placeholder="Имя команды">
+            <input type="text" id="m-name" class="m-in" placeholder="Название команды">
             <button id="join-btn" onclick="join()" class="m-btn">ПОДКЛЮЧИТЬСЯ</button>
         </div>
         <div id="m-race" style="display:none;">
-            <h1 id="m-myname" style="color:gold; margin-bottom: 0;"></h1>
+            <h1 id="m-myname" style="color:gold;"></h1>
             <div style="font-size:8rem; margin:20px 0;">🏇</div>
-            <p style="color: gold;">ЭКРАН ЗАФИКСИРОВАН</p>
-            <p style="font-size:1.8rem; font-weight:bold;">ПРОСТО ТРЯСИ!</p>
+            <p style="font-size:1.8rem; font-weight:bold;">ЖДИ СТАРТА И ТРЯСИ!</p>
         </div>
     </div>
 
     <div id="admin-screen" class="page">
-        <h2 style="color:gold;">АДМИН</h2>
-        <div style="margin-bottom:20px;">
-            Столов: <input type="number" id="adm-count" value="7" style="width:70px; font-size:1.5rem;">
-            <button onclick="socket.emit('adminSetTables', document.getElementById('adm-count').value)">ОК</button>
+        <h2 style="color:gold;">УПРАВЛЕНИЕ СКАЧКАМИ</h2>
+        <div class="adm-row">
+            <div>Столов: <input type="number" id="adm-count" value="7" style="width:60px; font-size:1.2rem;"></div>
+            <div>Макс. игроков: <input type="number" id="adm-max" value="5" style="width:60px; font-size:1.2rem;"></div>
+            <button onclick="applyConfig()">ПРИМЕНИТЬ</button>
         </div>
-        <button onclick="socket.emit('adminStartCountdown')" style="padding:30px; background:green; color:white; width:100%; font-size:2rem; border-radius:15px;">СТАРТ</button>
-        <div id="adm-stats" style="margin-top:20px;"></div>
-        <button onclick="socket.emit('restart')" style="margin-top:auto; background:red; color:white; padding:10px; border:none; border-radius:10px;">ПОЛНЫЙ СБРОС</button>
+        <button id="start-btn" onclick="socket.emit('adminStartCountdown')" class="adm-btn-start" disabled>СТАРТ (ЖДЕМ ИГРОКОВ)</button>
+        <div id="adm-stats" style="margin-top:20px; font-size: 1.2rem; border-top: 1px solid #444; padding-top: 10px;"></div>
+        <button onclick="socket.emit('restart')" style="margin-top:auto; background:red; color:white; padding:15px; border:none; border-radius:10px; font-weight:bold;">ПОЛНЫЙ СБРОС</button>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
@@ -147,130 +137,142 @@
 
         let selectedTable = null;
         let lastState = null;
-        let isWindowActive = true;
-
-        document.addEventListener("visibilitychange", () => {
-            isWindowActive = (document.visibilityState === 'visible');
-            if (isWindowActive && socket.disconnected) socket.connect();
-        });
 
         if (isScreen) {
             document.getElementById('lobby').style.display = 'flex';
-            new QRCode(document.getElementById("qrcode"), { text: window.location.origin, width: 450, height: 450 });
+            new QRCode(document.getElementById("qrcode"), { text: window.location.origin, width: 400, height: 400 });
         } else if (isAdmin) {
             document.getElementById('admin-screen').style.display = 'flex';
+            // Добавляем кнопку рестарта в экран финиша только для админа
+            document.getElementById('admin-restart-area').innerHTML = `<button onclick="socket.emit('restart')" style="padding:20px 60px; font-size:2rem; background:gold; border:none; border-radius:15px; font-weight:bold; cursor:pointer; margin-top:30px;">ИГРАТЬ ЕЩЕ РАЗ</button>`;
         } else {
             document.getElementById('mobile').style.display = 'block';
         }
 
-        function renderTableButtons(num) {
+        function applyConfig() {
+            socket.emit('adminConfig', {
+                totalTables: document.getElementById('adm-count').value,
+                maxPlayers: document.getElementById('adm-max').value
+            });
+        }
+
+        function renderTableButtons(state) {
             const grid = document.getElementById('table-selection');
-            if (!grid) return;
-            if (grid.children.length !== num) {
-                grid.innerHTML = '';
-                for(let i=1; i<=num; i++) {
-                    let b = document.createElement('div');
-                    b.className = 't-btn'; b.innerText = i;
+            if (!grid || grid.children.length === state.totalTables) return;
+            grid.innerHTML = '';
+            for(let i=1; i<=state.totalTables; i++) {
+                let tData = state.tables[i];
+                let isFull = tData && tData.count >= state.maxPlayersPerTable;
+                let b = document.createElement('div');
+                b.className = 't-btn' + (isFull ? ' full' : '');
+                b.innerHTML = `${i}<br><small>${tData ? tData.count : 0}/${state.maxPlayersPerTable}</small>`;
+                if (!isFull) {
                     b.onclick = () => {
                         document.querySelectorAll('.t-btn').forEach(el => el.classList.remove('active'));
                         b.classList.add('active');
                         selectedTable = i;
-                        updateNameInput(lastState);
+                        if (tData) {
+                            document.getElementById('m-name').value = tData.name;
+                            document.getElementById('m-name').disabled = true;
+                        } else {
+                            document.getElementById('m-name').disabled = false;
+                        }
                     };
-                    grid.appendChild(b);
                 }
-            }
-        }
-
-        function updateNameInput(state) {
-            if (!state || isScreen || isAdmin) return;
-            const nameInput = document.getElementById('m-name');
-            if (selectedTable && state.tables[selectedTable]) {
-                nameInput.value = state.tables[selectedTable].name;
-                nameInput.disabled = true;
-            } else {
-                nameInput.disabled = false;
+                grid.appendChild(b);
             }
         }
 
         function join() {
-            const n = document.getElementById('m-name').value;
             if(!selectedTable) return alert("Выбери стол!");
+            const n = document.getElementById('m-name').value;
             socket.emit('join', { tableId: selectedTable, teamName: n });
-            document.getElementById('m-setup').style.display = 'none';
-            document.getElementById('m-race').style.display = 'block';
-            document.getElementById('lock-overlay').style.display = 'block';
-            document.getElementById('m-myname').innerText = n || "Стол " + selectedTable;
-            
-            if (typeof DeviceMotionEvent.requestPermission === 'function') {
-                DeviceMotionEvent.requestPermission();
-            }
-            window.addEventListener('devicemotion', (e) => {
-                if (!isWindowActive) return;
-                let a = e.accelerationIncludingGravity;
-                if (Math.abs(a.x) + Math.abs(a.y) + Math.abs(a.z) > 25) {
-                    socket.emit('shake');
-                }
-            });
         }
+
+        socket.on('errorMsg', (msg) => alert(msg));
 
         socket.on('updateState', (state) => {
             lastState = state;
+            const hasPlayers = Object.keys(state.tables).length > 0;
+
             if (isAdmin) {
-                document.getElementById('adm-count').value = state.totalTables;
-                document.getElementById('adm-stats').innerHTML = Object.values(state.tables).map(t => `Стол ${t.id}: ${t.name}`).join('<br>');
+                document.getElementById('start-btn').disabled = !hasPlayers || state.status !== 'LOBBY';
+                document.getElementById('start-btn').innerText = hasPlayers ? "СТАРТ" : "ЖДЕМ ИГРОКОВ...";
+                document.getElementById('adm-stats').innerHTML = Object.values(state.tables)
+                    .map(t => `Стол ${t.id}: <b>${t.name}</b> (${t.count} чел.)`).join('<br>');
             }
+
             if (!isScreen && !isAdmin) {
-                renderTableButtons(state.totalTables);
-                updateNameInput(state);
+                renderTableButtons(state);
+                if (socket.tableId) { // Если уже вошли
+                    document.getElementById('m-setup').style.display = 'none';
+                    document.getElementById('m-race').style.display = 'block';
+                    document.getElementById('lock-overlay').style.display = 'block';
+                    document.getElementById('m-myname').innerText = state.tables[socket.tableId]?.name;
+                }
             }
+
             if (state.status === 'FINISHED') {
                 document.getElementById('victory-screen').style.display = 'flex';
-                document.getElementById('lock-overlay').style.display = 'none';
-                document.getElementById('winner-text').innerText = state.winner;
+                document.getElementById('winner-name-display').innerText = state.winner;
                 return;
             }
+
             if (isScreen) {
                 if (state.status === 'LOBBY') {
                     document.getElementById('lobby').style.display = 'flex';
                     document.getElementById('stadium').style.display = 'none';
                     document.getElementById('victory-screen').style.display = 'none';
                     document.getElementById('team-list').innerHTML = Object.values(state.tables)
-                        .map(t => `<div style="background:gold; color:black; padding:10px 25px; border-radius:10px; font-weight:bold;">${t.name}</div>`)
+                        .map(t => `<div style="background:gold; color:black; padding:10px 20px; border-radius:10px; font-weight:bold;">${t.name} (${t.count})</div>`)
                         .join('');
                 } else {
                     document.getElementById('lobby').style.display = 'none';
                     document.getElementById('stadium').style.display = 'flex';
                     document.getElementById('cnt').style.display = (state.status === 'COUNTDOWN') ? 'block' : 'none';
                     document.getElementById('cnt').innerText = state.countdown;
+                    
                     const field = document.getElementById('race-field');
-                    if (state.status === 'COUNTDOWN' && state.countdown === 5) field.innerHTML = '';
+                    const stats = document.getElementById('stats-bar');
+                    
+                    if (state.status === 'COUNTDOWN' && state.countdown === 5) {
+                        field.innerHTML = '';
+                        stats.innerHTML = '';
+                    }
 
                     Object.values(state.tables).forEach(t => {
+                        // Логика лошадок
                         let h = document.getElementById('h-' + t.id);
                         if (!h) {
-                            const lane = document.createElement('div');
-                            lane.className = 'lane';
-                            lane.innerHTML = `<div class="finish-checkered"></div><div id="h-${t.id}" class="horse"><div class="horse-img">🏇</div><div class="horse-label">${t.name}</div></div>`;
-                            field.appendChild(lane);
+                            field.insertAdjacentHTML('beforeend', `<div class="lane"><div class="finish-checkered"></div><div id="h-${t.id}" class="horse"><div class="horse-img">🏇</div><div class="horse-label">${t.name}</div></div></div>`);
                             h = document.getElementById('h-' + t.id);
                         }
                         h.style.left = (t.score * 0.88) + '%';
                         h.querySelector('.horse-img').style.animationPlayState = (state.status === 'RACING') ? 'running' : 'paused';
+
+                        // Логика статистики внизу
+                        let s = document.getElementById('s-' + t.id);
+                        if (!s) {
+                            stats.insertAdjacentHTML('beforeend', `<div id="s-${t.id}" class="stat-item"><div class="stat-name">${t.name}</div><div class="stat-val">👥 ${t.count} | 🏁 <span class="perc">0</span>%</div></div>`);
+                            s = document.getElementById('s-' + t.id);
+                        }
+                        s.querySelector('.perc').innerText = Math.floor(t.score);
                     });
                 }
             }
         });
 
-        socket.on('gameRestarted', () => {
-            if (!isScreen && !isAdmin) {
-                document.getElementById('m-setup').style.display = 'block';
-                document.getElementById('m-race').style.display = 'none';
-                document.getElementById('lock-overlay').style.display = 'none';
-                selectedTable = null;
-            }
-            if (isScreen) document.getElementById('race-field').innerHTML = '';
-        });
+        socket.on('gameRestarted', () => location.reload());
+
+        // Датчик тряски (только для мобилок)
+        if (!isScreen && !isAdmin) {
+            window.addEventListener('devicemotion', (e) => {
+                let a = e.accelerationIncludingGravity;
+                if (Math.abs(a.x) + Math.abs(a.y) + Math.abs(a.z) > 25) {
+                    socket.emit('shake');
+                }
+            });
+        }
     </script>
 </body>
 </html>
