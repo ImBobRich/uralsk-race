@@ -3,99 +3,110 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Скачки 2026</title>
+    <title>Сольналь 2026: Уральские Скачки</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
-        body { margin: 0; background: #111; font-family: sans-serif; overflow: hidden; color: white; }
+        body { margin: 0; background: #000; font-family: 'Arial Black', sans-serif; overflow: hidden; color: white; }
         
+        /* ЭКРАНЫ */
+        #lobby, #stadium, #victory-screen, #mobile { display: none; width: 100vw; height: 100vh; }
+
         /* ЛОББИ - БЕЗ ИЗМЕНЕНИЙ */
-        #lobby { display: none; width: 100vw; height: 100vh; flex-direction: column; align-items: center; justify-content: center; background: #300; }
+        #lobby { flex-direction: column; align-items: center; justify-content: center; background: radial-gradient(circle, #4a0000 0%, #000 100%); }
         .qr-box { background: white; padding: 15px; border-radius: 10px; margin: 20px; }
         #team-list { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
-        .tag { background: gold; color: black; padding: 10px 20px; border-radius: 5px; font-weight: bold; }
+        .tag { background: #ffd700; color: #000; padding: 10px 20px; border-radius: 5px; font-weight: bold; }
 
-        /* СТАДИОН - ПЛОСКИЙ 2D */
-        #stadium { display: none; width: 100vw; height: 100vh; background: #222; flex-direction: column; }
-        #race-tracks { flex: 1; display: flex; flex-direction: column; justify-content: space-around; padding: 20px 0; }
+        /* СТАДИОН - 2D ГОРИЗОНТАЛЬНЫЙ (КАК НА СКРИНШОТЕ) */
+        #stadium { flex-direction: column; background: #2d5a27; }
+        #race-field { flex: 1; display: flex; flex-direction: column; padding: 10px 0; }
         
-        .lane {
-            height: 80px; width: 100%; border-bottom: 2px solid #444; position: relative;
-            background: linear-gradient(90deg, #222 0%, #333 100%); display: flex; align-items: center;
+        .track-lane {
+            flex: 1; position: relative; border-bottom: 3px solid rgba(255,255,255,0.2);
+            display: flex; align-items: center; box-sizing: border-box;
+            /* Разные цвета дорожек как на твоем примере */
+            background: rgba(255,255,255,0.05);
         }
+        .track-lane:nth-child(1) { background-color: #f4b4fe; }
+        .track-lane:nth-child(2) { background-color: #ffff00; }
+        .track-lane:nth-child(3) { background-color: #8eff8e; }
+        .track-lane:nth-child(4) { background-color: #4df4ff; }
+        .track-lane:nth-child(5) { background-color: #ff8e8e; }
+        .track-lane:nth-child(6) { background-color: #cedc00; }
+
         .finish-line {
-            position: absolute; right: 100px; top: 0; bottom: 0; width: 30px;
-            background: repeating-linear-gradient(0deg, #fff, #fff 10px, #000 10px, #000 20px);
-            border-left: 4px solid gold;
+            position: absolute; right: 80px; top: 0; bottom: 0; width: 40px;
+            background: repeating-linear-gradient(0deg, #fff, #fff 15px, #000 15px, #000 30px);
+            box-shadow: -5px 0 10px rgba(0,0,0,0.3); z-index: 10;
         }
 
-        /* УЧАСТНИК */
-        .runner {
-            position: absolute; left: 0; display: flex; align-items: center;
-            transition: left 0.1s linear; padding-left: 20px;
+        .horse-unit {
+            position: absolute; left: 0; height: 80%; display: flex; align-items: center;
+            transition: left 0.1s linear; padding-left: 10px; z-index: 20;
         }
-        .runner-icon { font-size: 4rem; margin-right: 15px; }
-        .runner-name { background: gold; color: black; padding: 5px 15px; border-radius: 5px; font-weight: bold; font-size: 1.2rem; }
+        .horse-img { font-size: 5rem; margin-right: 10px; transform: scaleX(1); }
+        .horse-label { background: white; color: black; padding: 4px 12px; border-radius: 5px; font-weight: bold; border: 2px solid #000; font-size: 1.4rem; white-space: nowrap; }
 
         /* ОТСЧЕТ */
         #cnt-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8);
-            display: none; align-items: center; justify-content: center; font-size: 15rem; color: gold; z-index: 100;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7);
+            display: none; align-items: center; justify-content: center; font-size: 20rem; color: #ffd700; z-index: 5000;
         }
 
         /* ПОБЕДА */
-        #win-screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9);
-            display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 200;
-        }
+        #victory-screen { flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.95); z-index: 6000; }
 
         /* МОБИЛКА */
-        #mobile { display: none; padding: 20px; text-align: center; }
-        .m-btn { width: 100%; padding: 20px; background: gold; border: none; font-size: 1.5rem; font-weight: bold; border-radius: 10px; margin-top: 10px; }
-        #energy-bar { width: 100%; height: 40px; background: #333; border-radius: 20px; margin: 20px 0; overflow: hidden; border: 2px solid white; }
-        #energy-fill { width: 0%; height: 100%; background: red; transition: 0.1s; }
-
-        #admin-panel { position: fixed; bottom: 10px; left: 10px; z-index: 300; display: none; }
+        #mobile { text-align: center; padding: 20px; background: #1b5e20; box-sizing: border-box; }
+        .m-input { width: 100%; padding: 15px; margin: 10px 0; font-size: 1.2rem; border-radius: 10px; border: none; }
+        #energy-bar { width: 100%; height: 40px; background: #222; border: 3px solid white; border-radius: 20px; overflow: hidden; margin: 25px 0; }
+        #energy-fill { width: 0%; height: 100%; background: gold; transition: 0.1s; }
+        
+        #admin-panel { position: fixed; bottom: 15px; left: 15px; z-index: 7000; display: none; }
     </style>
 </head>
 <body>
 
     <div id="lobby">
-        <h1>РЕГИСТРАЦИЯ СТОЛОВ</h1>
+        <h1 style="color: #ffd700; font-size: 3rem;">СОЛЬНАЛЬ 2026</h1>
         <div class="qr-box" id="player-qr"></div>
         <div id="team-list"></div>
     </div>
 
     <div id="stadium">
-        <div id="race-tracks"></div>
+        <div id="race-field"></div>
         <div id="cnt-overlay">5</div>
     </div>
 
-    <div id="win-screen">
-        <h1 style="font-size: 5rem; color: gold;">ПОБЕДИТЕЛЬ!</h1>
-        <div id="win-team" style="font-size: 4rem;"></div>
-        <button onclick="socket.emit('restart')" class="m-btn" style="width: auto; padding: 10px 40px;">СБРОС</button>
+    <div id="victory-screen">
+        <h1 style="color: gold; font-size: 5rem;">ФИНИШ!</h1>
+        <div id="winner-name" style="font-size: 7rem; margin: 20px 0;"></div>
+        <button onclick="socket.emit('restart')" style="padding: 20px 60px; font-size: 2rem; border-radius: 15px; cursor: pointer; background: #ffd700; border: none; font-weight: bold;">РЕСТАРТ</button>
     </div>
 
     <div id="mobile">
-        <div id="m-join">
-            <input type="number" id="m-table" placeholder="№ Стола" style="width:100%; padding:15px; margin:10px 0; font-size:1.2rem;">
-            <input type="text" id="m-name" placeholder="Название команды" style="width:100%; padding:15px; margin:10px 0; font-size:1.2rem;">
-            <button onclick="joinGame()" class="m-btn">ВСТУПИТЬ</button>
+        <div id="m-setup">
+            <h2 style="color: gold;">ВАШ СТОЛ?</h2>
+            <input type="number" id="m-table" class="m-input" placeholder="НОМЕР СТОЛА">
+            <input type="text" id="m-name" class="m-input" placeholder="НАЗВАНИЕ КОМАНДЫ">
+            <button onclick="joinGame()" style="padding: 25px; width: 100%; background: gold; border: none; font-weight: bold; font-size: 2rem; border-radius: 15px; margin-top: 10px;">ГОТОВ</button>
         </div>
-        <div id="m-wait" style="display:none;">
-            <h2 id="m-myname"></h2>
+        <div id="m-race" style="display:none;">
+            <h2 id="m-team-display" style="color: gold; font-size: 2.5rem;"></h2>
             <div id="energy-bar"><div id="energy-fill"></div></div>
-            <p id="m-msg">ЖДЕМ СТАРТА...</p>
+            <p id="m-status" style="font-size: 1.8rem;">ЖДЕМ СТАРТА...</p>
         </div>
     </div>
 
-    <div id="admin-panel"><button onclick="socket.emit('adminStartCountdown')" style="padding:15px; background:red; color:white; border:none; border-radius:5px;">ПУСК</button></div>
+    <div id="admin-panel">
+        <button onclick="socket.emit('adminStartCountdown')" style="padding: 20px 40px; background: red; color: white; border-radius: 10px; border: none; font-weight: bold; font-size: 1.5rem;">ПУСК</button>
+    </div>
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
-        const socket = io({ query: { admin: location.search.includes('admin') } });
-        const isScreen = location.search.includes('screen');
-        const isAdmin = location.search.includes('admin');
+        const params = new URLSearchParams(window.location.search);
+        const isAdmin = params.has('admin'), isScreen = params.has('screen');
+        const socket = io({ query: { admin: isAdmin } });
 
         if (isScreen) {
             document.getElementById('lobby').style.display = 'flex';
@@ -108,16 +119,18 @@
         function joinGame() {
             const tableId = document.getElementById('m-table').value;
             const teamName = document.getElementById('m-name').value;
-            if(!tableId) return;
+            if(!tableId) return alert("Укажите стол");
             socket.emit('join', { tableId, teamName });
-            document.getElementById('m-join').style.display = 'none';
-            document.getElementById('m-wait').style.display = 'block';
-            document.getElementById('m-myname').innerText = teamName || "Стол "+tableId;
-            
-            if (window.DeviceMotionEvent && DeviceMotionEvent.requestPermission) DeviceMotionEvent.requestPermission();
+            document.getElementById('m-setup').style.display = 'none';
+            document.getElementById('m-race').style.display = 'block';
+            document.getElementById('m-team-display').innerText = teamName || "Стол "+tableId;
+
+            if (window.DeviceMotionEvent && typeof DeviceMotionEvent.requestPermission === 'function') {
+                DeviceMotionEvent.requestPermission();
+            }
             window.addEventListener('devicemotion', (e) => {
-                let accel = e.accelerationIncludingGravity;
-                if (Math.abs(accel.x) + Math.abs(accel.y) + Math.abs(accel.z) > 25) {
+                let a = e.accelerationIncludingGravity;
+                if (Math.abs(a.x) + Math.abs(a.y) + Math.abs(a.z) > 25) {
                     socket.emit('shake');
                     document.getElementById('energy-fill').style.width = '100%';
                     setTimeout(() => document.getElementById('energy-fill').style.width = '0%', 100);
@@ -130,7 +143,7 @@
                 if (state.status === 'LOBBY') {
                     document.getElementById('lobby').style.display = 'flex';
                     document.getElementById('stadium').style.display = 'none';
-                    document.getElementById('win-screen').style.display = 'none';
+                    document.getElementById('victory-screen').style.display = 'none';
                     document.getElementById('team-list').innerHTML = Object.values(state.tables).map(t => `<div class="tag">${t.name}</div>`).join('');
                 } else {
                     document.getElementById('lobby').style.display = 'none';
@@ -144,36 +157,38 @@
                         overlay.style.display = 'none';
                     }
                     
-                    // Отрисовка плоских дорожек
-                    const trackContainer = document.getElementById('race-tracks');
-                    trackContainer.innerHTML = '';
+                    // Отрисовка плоских дорожек слева-направо
+                    const field = document.getElementById('race-field');
+                    field.innerHTML = '';
                     Object.values(state.tables).forEach(t => {
                         const lane = document.createElement('div');
-                        lane.className = 'lane';
-                        // 80% ширины экрана — путь до финиша
-                        const xPos = t.score * 0.8; 
+                        lane.className = 'track-lane';
+                        // Путь занимает 85% ширины экрана
+                        const xPos = t.score * 0.85; 
                         lane.innerHTML = `
                             <div class="finish-line"></div>
-                            <div class="runner" style="left: ${xPos}%">
-                                <div class="runner-icon">🏇</div>
-                                <div class="runner-name">${t.name}</div>
+                            <div class="horse-unit" style="left: ${xPos}%">
+                                <div class="horse-img">🏇</div>
+                                <div class="horse-label">${t.name}</div>
                             </div>
                         `;
-                        trackContainer.appendChild(lane);
+                        field.appendChild(lane);
                     });
                 }
             } else {
-                document.getElementById('m-msg').innerText = state.status === 'RACING' ? "ТРЯСИ!!!" : "ПРИГОТОВИТЬСЯ...";
+                const statusText = document.getElementById('m-status');
+                if (state.status === 'RACING') statusText.innerText = "ТРЯСИ ТЕЛЕФОН!!!";
+                else if (state.status === 'COUNTDOWN') statusText.innerText = "ПРИГОТОВИТЬСЯ...";
+                else statusText.innerText = "ЖДЕМ СТАРТА...";
             }
         });
 
         socket.on('winner', (d) => {
             if (isScreen) {
-                document.getElementById('win-screen').style.display = 'flex';
-                document.getElementById('win-team').innerText = d.name;
+                document.getElementById('victory-screen').style.display = 'flex';
+                document.getElementById('winner-name').innerText = d.name;
             }
         });
-
         socket.on('gameRestarted', () => location.reload());
     </script>
 </body>
