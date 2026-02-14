@@ -40,7 +40,7 @@ io.on('connection', (socket) => {
         if (gameState.status !== 'RACING' || !socket.tableId) return;
         let t = gameState.tables[socket.tableId];
         if (t && t.score < 100) {
-            t.score += 0.15;
+            t.score += 0.2; // Оптимальная скорость для 3-х игроков
             if (t.score >= 100) {
                 t.score = 100;
                 gameState.status = 'FINISHED';
@@ -57,13 +57,17 @@ io.on('connection', (socket) => {
     });
 
     socket.on('adminStartCountdown', () => {
+        // Проверка: старт возможен только если есть хотя бы 1 команда
         if (Object.keys(gameState.tables).length === 0) return;
         gameState.status = 'COUNTDOWN';
         gameState.countdown = 5;
         broadcast();
         const timer = setInterval(() => {
             gameState.countdown--;
-            if (gameState.countdown <= 0) { clearInterval(timer); gameState.status = 'RACING'; }
+            if (gameState.countdown <= 0) { 
+                clearInterval(timer); 
+                gameState.status = 'RACING'; 
+            }
             broadcast();
         }, 1000);
     });
@@ -78,4 +82,4 @@ io.on('connection', (socket) => {
 });
 
 setInterval(() => { if (gameState.status === 'RACING') broadcast(); }, 50);
-server.listen(3000, () => console.log('SERVER START'));
+server.listen(3000, () => console.log('SERVER READY: http://localhost:3000'));
