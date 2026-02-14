@@ -6,96 +6,93 @@
     <title>Уральские Скачки 2026</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
-        :root { --kr-gold: #ffd700; }
-        body { margin: 0; padding: 0; background: #000; font-family: 'Arial Black', sans-serif; overflow: hidden; color: white; }
+        :root { --kr-gold: #ffd700; --kr-red: #b22222; }
+        body { margin: 0; padding: 0; background: #222; font-family: 'Arial Black', sans-serif; overflow: hidden; color: white; }
 
         /* ЭКРАНЫ */
         #lobby, #stadium, #victory-screen, #mobile { display: none; width: 100vw; height: 100vh; }
         
-        /* LOBBY (Интерфейс не меняем) */
-        #lobby { flex-direction: column; align-items: center; justify-content: center; background: radial-gradient(circle, #4a0000 0%, #000 100%); }
-        .qr-box { background: white; padding: 15px; border-radius: 10px; margin: 20px; }
-        #team-list { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+        /* LOBBY */
+        #lobby { flex-direction: column; align-items: center; justify-content: center; background: #4a0000; }
+        .qr-box { background: white; padding: 15px; border-radius: 10px; }
+        #team-list { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
         .team-tag { background: var(--kr-gold); color: #000; padding: 10px 20px; border-radius: 5px; font-weight: bold; }
 
-        /* СТАДИОН (Перерисованные дорожки) */
-        #stadium { flex-direction: column; background: #001a00; position: relative; }
-        #race-field { 
-            flex: 1; position: relative; overflow: hidden; 
-            background: linear-gradient(to bottom, #1e3c72 0%, #2a5298 25%, #87ceeb 25%, #2d5a27 26%);
-            perspective: 800px;
+        /* ПЛОСКИЙ СТАДИОН */
+        #stadium { background: #2d5a27; flex-direction: column; }
+        #race-field { flex: 1; display: flex; flex-direction: column; padding: 20px 0; box-sizing: border-box; }
+        
+        .track-lane {
+            flex: 1; border-top: 2px dashed rgba(255,255,255,0.3); border-bottom: 2px dashed rgba(255,255,255,0.3);
+            position: relative; background: rgba(0,0,0,0.1); display: flex; align-items: center;
+        }
+        .finish-line {
+            position: absolute; right: 50px; top: 0; bottom: 0; width: 40px;
+            background: repeating-linear-gradient(0deg, #fff, #fff 10px, #000 10px, #000 20px);
+            border-left: 5px solid gold;
         }
 
-        /* Удлиненный трек с текстурой */
-        #tracks-container {
-            position: absolute; bottom: -30%; left: 50%; width: 200%; height: 120%; 
-            transform: translateX(-50%) rotateX(75deg); transform-origin: bottom center;
-            display: flex; background: #444; border-left: 20px solid white; border-right: 20px solid white;
-            box-shadow: inset 0 0 100px rgba(0,0,0,0.5);
+        /* УЧАСТНИК */
+        .horse-unit {
+            position: absolute; left: 0; display: flex; align-items: center;
+            transition: left 0.3s ease-out; margin-left: 20px;
         }
-        .lane { 
-            flex: 1; border-right: 6px dashed rgba(255,255,255,0.3); position: relative;
-            background: linear-gradient(180deg, #333 0%, #444 100%);
-        }
-        /* Финишная черта */
-        .lane::before {
-            content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 40px;
-            background: repeating-linear-gradient(45deg, #fff, #fff 10px, #000 10px, #000 20px);
+        .horse-img { font-size: 4rem; filter: drop-shadow(5px 5px 5px rgba(0,0,0,0.5)); }
+        .horse-info { 
+            background: white; color: black; padding: 5px 10px; border-radius: 5px; 
+            font-size: 1rem; margin-left: 10px; white-space: nowrap; font-weight: bold;
         }
 
-        /* ЛОШАДИ */
-        .horse { 
-            position: absolute; transform: translateX(-50%) translateY(-50%); 
-            display: flex; flex-direction: column; align-items: center; 
-            z-index: 100; transition: all 0.2s ease-out; 
+        /* ОТСЧЕТ */
+        #countdown-overlay {
+            position: fixed; top:0; left:0; width:100%; height:100%;
+            background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center;
+            font-size: 20rem; color: var(--kr-gold); z-index: 5000;
         }
-        .horse-emoji { font-size: 5.5rem; transform: scaleX(-1); filter: drop-shadow(0 15px 5px rgba(0,0,0,0.4)); }
-        .horse-label { background: white; color: black; padding: 3px 12px; border-radius: 6px; font-size: 1.3rem; border: 2px solid black; white-space: nowrap; font-weight: bold; }
 
-        /* OVERLAYS */
-        #countdown-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; font-size: 22rem; color: var(--kr-gold); z-index: 5000; }
-        #victory-screen { flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.9); z-index: 9999; }
+        /* ПОБЕДА (С ФЕЙЕРВЕРКОМ) */
+        #victory-screen { 
+            flex-direction: column; align-items: center; justify-content: center; 
+            background: rgba(0,0,0,0.95); z-index: 9999; text-align: center;
+        }
+        .firework-text { font-size: 5rem; color: gold; animation: blink 0.5s infinite; }
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
 
         /* МОБИЛКА */
         #mobile { text-align: center; padding: 20px; background: #1b5e20; box-sizing: border-box; }
-        .m-input { width: 100%; padding: 18px; margin: 10px 0; font-size: 1.3rem; border-radius: 10px; border: none; }
-        #energy-bar { width: 100%; height: 45px; background: #222; border: 3px solid white; border-radius: 25px; overflow: hidden; margin: 25px 0; }
-        #energy-fill { width: 0%; height: 100%; background: linear-gradient(90deg, #ff0, #f00); transition: 0.1s; }
+        .m-input { width: 100%; padding: 15px; margin: 10px 0; font-size: 1.2rem; border-radius: 10px; border: none; }
+        #energy-bar { width: 100%; height: 40px; background: #222; border: 3px solid white; border-radius: 20px; overflow: hidden; margin: 20px 0; }
+        #energy-fill { width: 0%; height: 100%; background: gold; transition: 0.1s; }
         
-        #admin-panel { position: fixed; bottom: 15px; left: 15px; z-index: 10000; display: none; }
+        #admin-panel { position: fixed; bottom: 10px; left: 10px; z-index: 10000; display: none; }
     </style>
 </head>
 <body>
 
     <div id="lobby">
-        <h1 style="color: var(--kr-gold); font-size: 3rem;">УРАЛЬСКИЕ СКАЧКИ 2026</h1>
+        <h1 style="color: var(--kr-gold); font-size: 3rem; margin: 0;">УРАЛЬСКИЕ СКАЧКИ 2026</h1>
         <div class="qr-box" id="player-qr"></div>
         <div id="team-list"></div>
     </div>
 
     <div id="stadium">
         <div id="race-field">
-            <div id="tracks-container">
-                <div class="lane"></div><div class="lane"></div><div class="lane"></div>
-                <div class="lane"></div><div class="lane"></div><div class="lane"></div><div class="lane"></div>
             </div>
-            <div id="horses-layer" style="position: absolute; top:0; left:0; width:100%; height:100%; pointer-events: none;"></div>
-        </div>
         <div id="countdown-overlay">5</div>
     </div>
 
     <div id="victory-screen">
-        <h1 style="color: gold; font-size: 5rem;">ПОБЕДИТЕЛЬ!</h1>
-        <div id="winner-name" style="font-size: 7rem;"></div>
-        <button onclick="socket.emit('restart')" style="padding: 20px 50px; font-size: 1.5rem; margin-top: 30px; cursor: pointer;">НОВАЯ ИГРА</button>
+        <div class="firework-text">🎉 ПОБЕДА 🎉</div>
+        <div id="winner-name" style="font-size: 6rem; color: white;"></div>
+        <button onclick="socket.emit('restart')" style="padding: 20px 50px; font-size: 1.5rem; margin-top: 30px; cursor: pointer; border-radius: 10px; background: gold;">К НАЧАЛУ</button>
     </div>
 
     <div id="mobile">
         <div id="m-setup">
-            <h2>РЕГИСТРАЦИЯ КОМАНДЫ</h2>
+            <h2 style="color: gold;">РЕГИСТРАЦИЯ СТОЛА</h2>
             <input type="number" id="m-table" class="m-input" placeholder="НОМЕР СТОЛА">
-            <input type="text" id="m-name" class="m-input" placeholder="НАЗВАНИЕ СТОЛА">
-            <button onclick="mJoin()" style="padding: 22px; width: 100%; background: gold; border: none; font-weight: bold; font-size: 1.5rem; border-radius: 10px;">ГОТОВ</button>
+            <input type="text" id="m-name" class="m-input" placeholder="НАЗВАНИЕ КОМАНДЫ">
+            <button onclick="mJoin()" style="padding: 20px; width: 100%; background: gold; border: none; font-weight: bold; border-radius: 10px; font-size: 1.5rem;">ГОТОВ</button>
         </div>
         <div id="m-race" style="display:none;">
             <h2 id="m-team-display" style="color: gold;"></h2>
@@ -104,7 +101,7 @@
         </div>
     </div>
 
-    <div id="admin-panel"><button onclick="socket.emit('adminStartCountdown')" style="padding: 20px; background: red; color: white; font-weight: bold; border-radius: 10px;">СТАРТ</button></div>
+    <div id="admin-panel"><button onclick="socket.emit('adminStartCountdown')" style="padding: 15px 30px; background: red; color: white; border-radius: 10px; border: none; font-weight: bold;">ПУСК</button></div>
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
@@ -150,41 +147,40 @@
                 } else {
                     document.getElementById('lobby').style.display = 'none';
                     document.getElementById('stadium').style.display = 'flex';
-                    document.getElementById('countdown-overlay').style.display = (state.status === 'COUNTDOWN') ? 'flex' : 'none';
-                    renderHorses(state.tables);
+                    
+                    const overlay = document.getElementById('countdown-overlay');
+                    if (state.status === 'COUNTDOWN') {
+                        overlay.style.display = 'flex';
+                        overlay.innerText = state.countdown;
+                    } else {
+                        overlay.style.display = 'none';
+                    }
+                    renderRace(state.tables);
                 }
             } else {
-                document.getElementById('m-status').innerText = state.status === 'RACING' ? "ТРЯСИ ТЕЛЕФОН!!!" : "ПРИГОТОВИТЬСЯ...";
+                document.getElementById('m-status').innerText = state.status === 'RACING' ? "ТРЯСИ ТЕЛЕФОН!!!" : (state.status === 'COUNTDOWN' ? "ПРИГОТОВИТЬСЯ..." : "ЖДЕМ СТАРТА...");
             }
         });
 
-        function renderHorses(tables) {
-            const layer = document.getElementById('horses-layer');
-            layer.innerHTML = '';
-            const allTables = Object.values(tables);
+        function renderRace(tables) {
+            const field = document.getElementById('race-field');
+            field.innerHTML = ''; // Очищаем для перерисовки
             
-            allTables.forEach(t => {
-                const laneIdx = (parseInt(t.id) - 1) % 7; // Поддержка 7 дорожек
-                const progress = t.score / 100;
+            Object.values(tables).forEach(t => {
+                const lane = document.createElement('div');
+                lane.className = 'track-lane';
                 
-                // Перспектива: дорожки сходятся к центру (50%)
-                const startX = (laneIdx + 0.5) * (100 / 7);
-                const horizonX = 50; 
-                const currentX = startX + (horizonX - startX) * (progress * 0.9);
-                
-                // Длинный путь: от 90% до 28% высоты экрана
-                const currentY = 90 - (90 - 28) * progress;
-                const scale = 1.8 - (progress * 1.2); // Уменьшение с 1.8 до 0.6
+                // Рассчитываем позицию (оставляем запас для финишной черты)
+                const horsePos = t.score * 0.85; 
 
-                const div = document.createElement('div');
-                div.className = 'horse';
-                div.style.left = currentX + '%'; 
-                div.style.top = currentY + '%';
-                div.style.transform = `translateX(-50%) translateY(-50%) scale(${scale})`;
-                div.style.zIndex = Math.floor(1000 - (progress * 100)); // Задние не перекрывают передних
-
-                div.innerHTML = `<div class="horse-label">${t.name}</div><div class="horse-emoji">🏇</div>`;
-                layer.appendChild(div);
+                lane.innerHTML = `
+                    <div class="finish-line"></div>
+                    <div class="horse-unit" style="left: ${horsePos}%">
+                        <div class="horse-img">🏇</div>
+                        <div class="horse-info">${t.name}</div>
+                    </div>
+                `;
+                field.appendChild(lane);
             });
         }
 
