@@ -13,100 +13,117 @@
         }
         body { margin: 0; padding: 0; background: #000; font-family: 'Arial Black', sans-serif; overflow: hidden; color: white; }
 
-        /* ЗАСТАВКА (LOBBY) */
-        #lobby { 
-            display: none; width: 100vw; height: 100vh; 
-            background: radial-gradient(circle, #4a0000 0%, #000 100%);
-            flex-direction: column; align-items: center; justify-content: center; text-align: center;
-        }
-        .kr-border { border: 10px double var(--kr-gold); padding: 40px; background: rgba(0,0,0,0.5); border-radius: 20px; position: relative; }
-        .qr-container { background: white; padding: 15px; border-radius: 10px; margin: 20px; display: inline-block; }
-        #team-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; margin-top: 30px; }
-        .team-card { background: var(--kr-gold); color: black; padding: 10px 20px; border-radius: 5px; font-size: 1.5rem; animation: pop 0.3s ease-out; }
-
-        /* СТАДИОН (RACE) */
-        #stadium { display: none; width: 100vw; height: 100vh; flex-direction: column; background: #1a3317; }
-        #race-field { flex: 1; position: relative; overflow: hidden; background: linear-gradient(to bottom, #4facfe 0%, #ffffff 35%, #2d5a27 35%); }
-        #tracks-layer {
-            position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
-            width: 100%; height: 65%; display: flex; clip-path: polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%);
-            background: #444; border-top: 10px solid white;
-        }
-        .lane { flex: 1; border-right: 2px solid rgba(255,255,255,0.3); }
-
-        /* ОТСЧЕТ */
-        #countdown-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center;
-            font-size: 15rem; color: var(--kr-gold); z-index: 100;
+        /* ЭКРАН ТВ */
+        #stadium { display: none; width: 100vw; height: 100vh; flex-direction: column; background: #1a3317; position: relative; }
+        
+        #race-field { 
+            flex: 1; position: relative; overflow: hidden; 
+            background: linear-gradient(to bottom, #4facfe 0%, #00f2fe 30%, #ffffff 30%, #2d5a27 31%);
+            perspective: 600px; /* Создаем глубину для 3D */
         }
 
-        /* МОБИЛКА */
+        /* Настоящая перспектива дорожек */
+        #tracks-container {
+            position: absolute; bottom: -50px; left: 50%; 
+            width: 150%; height: 80%; 
+            transform: translateX(-50%) rotateX(60deg); /* Наклон всей плоскости */
+            transform-origin: bottom center;
+            display: flex; background: #333;
+            border: 10px solid white;
+        }
+        .lane { flex: 1; border-right: 4px solid rgba(255,255,255,0.5); position: relative; }
+        .lane::after { content: ""; position: absolute; top:0; left:0; width:100%; height:10px; background: white; } /* Линия финиша */
+
+        /* Лошадь */
+        .horse {
+            position: absolute; 
+            bottom: 0; left: 50%; transform: translateX(-50%);
+            display: flex; flex-direction: column; align-items: center;
+            transition: bottom 0.1s linear;
+            z-index: 10;
+        }
+        .horse-emoji { 
+            font-size: 6rem; 
+            transform: scaleX(-1) rotateX(-20deg); /* Наклон наездника, чтобы не смотрел в небо */
+            filter: drop-shadow(0 20px 10px rgba(0,0,0,0.5));
+        }
+        .horse-label { 
+            background: rgba(255,255,255,0.9); color: #000; padding: 5px 15px; 
+            border-radius: 10px; font-size: 1.4rem; border: 3px solid #000;
+            margin-bottom: -10px; white-space: nowrap;
+        }
+
+        /* ПОБЕДНЫЙ ЭКРАН */
+        #victory-screen {
+            position: fixed; top:0; left:0; width:100%; height:100%;
+            background: rgba(0,0,0,0.85); display: none;
+            flex-direction: column; align-items: center; justify-content: center;
+            z-index: 1000; text-align: center;
+        }
+        .firework { position: absolute; width: 10px; height: 10px; border-radius: 50%; box-shadow: 0 0 50px 20px gold; animation: explode 1s infinite; }
+
+        @keyframes explode { 0% { transform: scale(0); opacity: 1; } 100% { transform: scale(20); opacity: 0; } }
+
+        /* Остальные стили (Lobby, Mobile) остаются из прошлого шага */
+        #lobby { display: none; width: 100vw; height: 100vh; background: radial-gradient(circle, #4a0000 0%, #000 100%); flex-direction: column; align-items: center; justify-content: center; }
+        .qr-container { background: white; padding: 15px; border-radius: 10px; margin: 20px; }
+        #countdown-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; font-size: 15rem; color: var(--kr-gold); z-index: 500; }
+        
         #mobile { display: none; height: 100vh; background: #1b5e20; text-align: center; padding-top: 30px; }
         .setup-input { padding: 15px; width: 80%; font-size: 1.2rem; margin: 10px 0; border-radius: 10px; border: none; }
         #energy-bar { width: 85%; height: 40px; background: #222; border-radius: 20px; margin: 20px auto; border: 3px solid white; overflow: hidden; }
         #energy-fill { width: 0%; height: 100%; background: linear-gradient(90deg, gold, orange, red); transition: 0.1s; }
-
-        /* АДМИН ПАНЕЛЬ */
-        #admin-panel { position: fixed; bottom: 10px; left: 10px; z-index: 200; display: none; }
-        .admin-btn { background: red; color: white; padding: 15px; border: none; font-weight: bold; border-radius: 10px; }
-
-        @keyframes pop { from { transform: scale(0); } to { transform: scale(1); } }
-        .horse { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); transition: bottom 0.1s linear; display: flex; flex-direction: column; align-items: center; }
-        .horse-emoji { font-size: 5rem; transform: scaleX(-1); }
     </style>
 </head>
 <body>
 
     <div id="lobby">
-        <div class="kr-border">
-            <h1 style="color: var(--kr-gold); font-size: 3.5rem; margin: 0;">2026: ГОД ОГНЕННОЙ ЛОШАДИ</h1>
-            <h2 style="color: white;">Сканируй QR, выбирай стол и жми "ГОТОВ"</h2>
-            
-            <div style="display: flex; align-items: center; justify-content: center;">
-                <div class="qr-container" id="player-qr"></div>
-                <div style="text-align: left; margin-left: 20px;">
-                    <p>1. Введи номер стола</p>
-                    <p>2. Придумай имя команды</p>
-                    <p>3. Тряси телефон на старте!</p>
-                </div>
-            </div>
-
-            <div id="team-list"></div>
-        </div>
+        <h1 style="color: var(--kr-gold); font-size: 3rem;">УРАЛЬСКИЕ СКАЧКИ 2026</h1>
+        <div class="qr-container" id="player-qr"></div>
+        <div id="team-list" style="display:flex; gap:10px;"></div>
     </div>
 
     <div id="stadium">
         <div id="race-field">
-            <div id="tracks-layer">
-                <div class="lane" style="background:var(--lane-1)"></div><div class="lane" style="background:var(--lane-2)"></div>
-                <div class="lane" style="background:var(--lane-3)"></div><div class="lane" style="background:var(--lane-4)"></div>
-                <div class="lane" style="background:var(--lane-5)"></div><div class="lane" style="background:var(--lane-6)"></div>
+            <div id="tracks-container">
+                <div class="lane" style="background:var(--lane-1)"></div>
+                <div class="lane" style="background:var(--lane-2)"></div>
+                <div class="lane" style="background:var(--lane-3)"></div>
+                <div class="lane" style="background:var(--lane-4)"></div>
+                <div class="lane" style="background:var(--lane-5)"></div>
+                <div class="lane" style="background:var(--lane-6)"></div>
             </div>
-            <div id="horses-container" style="position: absolute; bottom: 0; left: 0; width: 100%; height: 65%;"></div>
+            <div id="horses-layer" style="position: absolute; top:0; left:0; width:100%; height:100%; pointer-events: none;"></div>
         </div>
+    </div>
+
+    <div id="victory-screen">
+        <div class="firework" style="top:20%; left:30%;"></div>
+        <div class="firework" style="top:40%; left:70%;"></div>
+        <h1 style="font-size: 5rem; color: var(--kr-gold); text-shadow: 0 0 30px red;">ПОБЕДИТЕЛЬ</h1>
+        <h2 id="winner-name" style="font-size: 7rem; margin: 0;"></h2>
+        <button onclick="location.reload()" style="margin-top:50px; padding:20px; font-size:1.5rem;">НОВАЯ ИГРА</button>
     </div>
 
     <div id="mobile">
         <div id="m-setup">
-            <h1>УЧАСТИЕ</h1>
-            <input type="number" id="m-table" class="setup-input" placeholder="№ СТОЛА">
-            <input type="text" id="m-name" class="setup-input" placeholder="НАЗВАНИЕ КОМАНДЫ">
-            <button onclick="mJoin()" style="background:var(--kr-gold); padding:20px 40px; font-size:1.5rem; border-radius:10px;">ГОТОВ!</button>
+            <h1>РЕГИСТРАЦИЯ</h1>
+            <input type="number" id="m-table" class="setup-input" placeholder="НОМЕР СТОЛА">
+            <input type="text" id="m-name" class="setup-input" placeholder="КОМАНДА">
+            <button onclick="mJoin()" style="background:var(--kr-gold); padding:20px; border-radius:10px; font-size:1.5rem;">ГОТОВ!</button>
         </div>
         <div id="m-wait" style="display:none;">
             <h2 id="m-team-display"></h2>
-            <p>Ждем команду администратора...</p>
             <div id="energy-bar"><div id="energy-fill"></div></div>
+            <p>ТРЯСИ ТЕЛЕФОН ПОСЛЕ СТАРТА!</p>
         </div>
     </div>
 
-    <div id="admin-panel">
-        <button class="admin-btn" onclick="adminStart()">ЗАПУСТИТЬ СТАРТ (5 сек)</button>
-        <button class="admin-btn" style="background:blue;" onclick="socket.emit('restart')">СБРОС</button>
-    </div>
-
     <div id="countdown-overlay">5</div>
+    
+    <div id="admin-panel" style="position:fixed; bottom:10px; left:10px; display:none; z-index:2000;">
+        <button onclick="socket.emit('adminStartCountdown')" style="padding:20px; background:red; color:white;">СТАРТ</button>
+    </div>
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
@@ -115,7 +132,6 @@
         const isScreen = urlParams.has('screen');
         const socket = io({ query: { admin: isAdmin } });
 
-        // Инициализация интерфейсов
         if (isScreen) {
             document.getElementById('lobby').style.display = 'flex';
             new QRCode(document.getElementById("player-qr"), window.location.origin);
@@ -124,93 +140,100 @@
         }
         if (isAdmin) document.getElementById('admin-panel').style.display = 'block';
 
-        // Логика мобилки
         function mJoin() {
             const tableId = document.getElementById('m-table').value;
             const teamName = document.getElementById('m-name').value;
-            if(!tableId) return alert("Введите стол");
-            
+            if(!tableId) return alert("Укажите стол");
             socket.emit('join', { tableId, teamName });
             document.getElementById('m-setup').style.display = 'none';
             document.getElementById('m-wait').style.display = 'block';
             document.getElementById('m-team-display').innerText = teamName || "Стол "+tableId;
-            
-            // Активация акселерометра
+
             if (window.DeviceMotionEvent && typeof DeviceMotionEvent.requestPermission === 'function') {
                 DeviceMotionEvent.requestPermission();
             }
             window.addEventListener('devicemotion', (e) => {
-                let a = e.accelerationIncludingGravity;
-                if (Math.abs(a.x)+Math.abs(a.y)+Math.abs(a.z) > 25) {
+                let acc = e.accelerationIncludingGravity;
+                if (Math.abs(acc.x) + Math.abs(acc.y) + Math.abs(acc.z) > 22) {
                     socket.emit('shake');
                     document.getElementById('energy-fill').style.width = '100%';
-                    setTimeout(() => document.getElementById('energy-fill').style.width = '0%', 150);
+                    setTimeout(() => document.getElementById('energy-fill').style.width = '0%', 100);
                 }
             });
         }
 
-        // Логика админа
-        function adminStart() {
-            socket.emit('adminStartCountdown');
-        }
-
-        // Обновление состояния
         socket.on('updateState', (state) => {
-            if (isScreen) {
-                if (state.status === 'LOBBY') {
-                    const list = document.getElementById('team-list');
-                    list.innerHTML = Object.values(state.tables).map(t => `<div class="team-card">${t.name}</div>`).join('');
-                }
-                
-                if (state.status === 'COUNTDOWN') {
-                    document.getElementById('lobby').style.display = 'none';
-                    document.getElementById('stadium').style.display = 'flex';
-                    startCountdown();
-                }
+            if (!isScreen) return;
 
-                if (state.status === 'RACING' || state.status === 'FINISHED') {
-                    drawRace(state.tables);
-                }
+            if (state.status === 'LOBBY') {
+                document.getElementById('team-list').innerHTML = Object.values(state.tables).map(t => `<div style="background:gold; color:black; padding:10px;">${t.name}</div>`).join('');
+            }
+
+            if (state.status === 'COUNTDOWN' && document.getElementById('countdown-overlay').style.display !== 'flex') {
+                startCountdown();
+            }
+
+            if (state.status === 'RACING') {
+                document.getElementById('stadium').style.display = 'flex';
+                document.getElementById('lobby').style.display = 'none';
+                renderHorses(state.tables);
             }
         });
 
         function startCountdown() {
             const overlay = document.getElementById('countdown-overlay');
             overlay.style.display = 'flex';
-            let count = 5;
-            const timer = setInterval(() => {
-                count--;
-                overlay.innerText = count;
-                if (count <= 0) {
-                    clearInterval(timer);
+            let c = 5;
+            overlay.innerText = c;
+            const t = setInterval(() => {
+                c--;
+                overlay.innerText = c;
+                if (c <= 0) {
+                    clearInterval(t);
                     overlay.style.display = 'none';
-                    if(isAdmin) socket.emit('adminSetRacing');
+                    if (isAdmin) socket.emit('adminSetRacing');
                 }
             }, 1000);
         }
 
-        function drawRace(tables) {
-            const container = document.getElementById('horses-container');
-            container.innerHTML = '';
-            Object.entries(tables).forEach(([id, data]) => {
-                const laneIdx = (parseInt(id)-1) % 6;
-                const progress = data.score / 100;
-                const horse = document.createElement('div');
-                horse.className = 'horse';
-                horse.style.bottom = data.score + '%';
-                // Простая логика X-позиции для 3D
-                const startX = (laneIdx + 0.5) * (100/6);
-                const endX = 20 + (laneIdx + 0.5) * 10;
-                const currentX = startX + (endX - startX) * progress;
-                horse.style.left = currentX + '%';
-                horse.style.transform = `translateX(-50%) scale(${1.5 - progress})`;
-                
-                horse.innerHTML = `<div style="background:white; color:black; padding:2px 10px; border-radius:5px;">${data.name}</div><div class="horse-emoji">🏇</div>`;
-                container.appendChild(horse);
+        function renderHorses(tables) {
+            const layer = document.getElementById('horses-layer');
+            layer.innerHTML = '';
+            Object.values(tables).forEach(t => {
+                const laneIdx = (parseInt(t.id) - 1) % 6;
+                const progress = t.score / 100;
+
+                // Математика перспективы:
+                // По мере продвижения вперед (progress), лошадь должна сближаться к центру
+                const startX = (laneIdx + 0.5) * (100 / 6);
+                const horizonX = 50; // Точка схода в центре
+                const currentX = startX + (horizonX - startX) * (progress * 0.8);
+
+                // По мере продвижения вперед, лошадь должна подниматься к линии горизонта (30% высоты экрана)
+                const startY = 90; // Низ экрана
+                const horizonY = 32; // Линия горизонта
+                const currentY = startY - (startY - horizonY) * progress;
+
+                const div = document.createElement('div');
+                div.className = 'horse';
+                div.style.left = currentX + '%';
+                div.style.top = currentY + '%';
+                // Уменьшаем масштаб по мере удаления
+                div.style.transform = `translateX(-50%) scale(${1.3 - (progress * 0.8)})`;
+
+                div.innerHTML = `
+                    <div class="horse-label">${t.name}</div>
+                    <div class="horse-emoji">🏇</div>
+                `;
+                layer.appendChild(div);
             });
         }
 
-        socket.on('winner', (d) => alert("ПОБЕДИЛИ: " + d.name));
+        socket.on('winner', (data) => {
+            document.getElementById('victory-screen').style.display = 'flex';
+            document.getElementById('winner-name').innerText = data.name;
+        });
+
         socket.on('gameRestarted', () => location.reload());
     </script>
 </body>
