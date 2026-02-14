@@ -10,7 +10,7 @@ app.use(express.static(__dirname + '/public'));
 
 let gameState = {
     status: 'LOBBY', 
-    tables: {},
+    tables: {}, // Здесь хранятся все столы
     winner: null
 };
 
@@ -18,18 +18,34 @@ io.on('connection', (socket) => {
     const isAdmin = socket.handshake.query.admin === 'true';
 
     socket.on('join', ({ tableId, teamName }) => {
+        // Сохраняем ID стола в сессии сокета
         socket.tableId = tableId;
+
+        // Если этого стола еще нет в списке — создаем
         if (!gameState.tables[tableId]) {
-            gameState.tables[tableId] = { id: tableId, name: teamName || `Стол №${tableId}`, score: 0 };
+            gameState.tables[tableId] = { 
+                id: tableId, 
+                name: teamName || `Стол №${tableId}`, 
+                score: 0,
+                playersCount: 1 
+            };
+        } else {
+            // Если стол уже есть, просто увеличиваем количество игроков за ним
+            gameState.tables[tableId].playersCount++;
         }
+        
+        // Отправляем обновленное состояние ВСЕМ, чтобы все увидели новый стол
         io.emit('updateState', gameState);
     });
 
     socket.on('shake', () => {
         if (gameState.status !== 'RACING' || !socket.tableId) return;
+        
         const table = gameState.tables[socket.tableId];
         if (table && table.score < 100) {
-            table.score += 0.5; 
+            // Энергия всех игроков стола суммируется здесь
+            table.score += 0.4; 
+            
             if (table.score >= 100) {
                 table.score = 100;
                 gameState.status = 'FINISHED';
@@ -43,7 +59,7 @@ io.on('connection', (socket) => {
     socket.on('adminStartCountdown', () => {
         if (gameState.status !== 'LOBBY') return;
         gameState.status = 'COUNTDOWN';
-        io.emit('updateState', gameState); // Сразу переключаем всех на экран трассы
+        io.emit('updateState', gameState);
 
         let timer = 5;
         const interval = setInterval(() => {
@@ -64,4 +80,4 @@ io.on('connection', (socket) => {
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`Server started on ${PORT}`));
+server.listen(PORT, () => console.log(`Server started on port ${PORT}`));
