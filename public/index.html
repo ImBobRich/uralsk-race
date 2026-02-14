@@ -6,129 +6,109 @@
     <title>СОЛЛАЛЬ 2026</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
+        :root { --gold: #ffd700; --check: 40px; }
         body { margin: 0; background: #000; font-family: 'Arial Black', sans-serif; color: white; overflow: hidden; touch-action: none; }
         .page { display: none; width: 100vw; height: 100vh; position: fixed; top: 0; left: 0; box-sizing: border-box; }
         
-        /* ЛОББИ ТВ */
-        #lobby { 
-            flex-direction: column; align-items: center; justify-content: center; 
-            background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('https://images.unsplash.com/photo-1598902108854-10e335adac99?q=80&w=2070&auto=format&fit=crop');
-            background-size: cover; background-position: center;
-        }
-        .header-title h1 { font-size: 6rem; margin: 0; -webkit-text-stroke: 2px gold; text-shadow: 0 0 20px #ff4500; }
-        .header-title h2 { font-size: 3.5rem; color: gold; margin: 0; }
-        .main-row { display: flex; align-items: center; justify-content: center; gap: 60px; margin-top: 40px; }
-        .qr-wrap { background: white; padding: 20px; border-radius: 20px; border: 10px solid gold; }
-        .plate { background: rgba(0,0,0,0.8); padding: 30px; border: 3px solid gold; border-radius: 20px; text-align: left; }
+        /* ТВ ЛОББИ */
+        #lobby { flex-direction: column; align-items: center; justify-content: center; background: radial-gradient(circle, #222 0%, #000 100%); }
+        .qr-area { background: white; padding: 20px; border-radius: 20px; border: 10px solid var(--gold); }
+        .info-plate { background: rgba(255,255,255,0.05); padding: 30px; border: 2px solid var(--gold); border-radius: 20px; font-size: 2rem; }
 
-        /* СТАДИОН */
+        /* ТВ ТРАССА */
         #stadium { background: #1a3c15; flex-direction: column; }
-        .lane { flex: 1; border-bottom: 2px solid rgba(255,255,255,0.2); position: relative; display: flex; align-items: center; overflow: hidden; }
+        .lane { flex: 1; border-bottom: 2px solid rgba(255,255,255,0.1); position: relative; display: flex; align-items: center; }
         
-        /* ФИНИШНАЯ ЧЕРТА - ШАХМАТКА */
         .finish-line {
-            position: absolute; right: 0; top: 0; bottom: 0; width: 60px;
-            background: 
+            position: absolute; right: 0; top: 0; bottom: 0; width: 100px;
+            background-image: 
                 linear-gradient(45deg, #000 25%, transparent 25%), 
                 linear-gradient(-45deg, #000 25%, transparent 25%),
                 linear-gradient(45deg, transparent 75%, #000 75%),
                 linear-gradient(-45deg, transparent 75%, #000 75%);
-            background-size: 20px 20px; background-color: #fff; background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+            background-size: var(--check) var(--check); background-color: #fff;
+            background-position: 0 0, 0 20px, 20px -20px, -20px 0px;
+            border-left: 5px solid var(--gold); z-index: 1;
         }
 
-        .horse { position: absolute; left: 0; transition: left 0.1s linear; z-index: 10; display: flex; align-items: center; }
-        .horse-img { font-size: 5rem; transform: scaleX(-1); animation: gallop 0.4s infinite ease-in-out; }
-        @keyframes gallop { 0%, 100% { transform: translateY(0) scaleX(-1); } 50% { transform: translateY(-15px) scaleX(-1); } }
-        .horse-label { background: #fff; color: #000; padding: 5px 15px; border-radius: 8px; font-weight: bold; font-size: 1.5rem; border: 2px solid #000; margin-left: -15px; }
+        .horse { position: absolute; left: 0; transition: left 0.15s ease-out; z-index: 10; display: flex; align-items: center; }
+        .horse-img { font-size: 6rem; transform: scaleX(-1); animation: gallop 0.4s infinite alternate; }
+        @keyframes gallop { from { transform: translateY(0) scaleX(-1); } to { transform: translateY(-25px) scaleX(-1); } }
+        .horse-name { background: var(--gold); color: #000; padding: 5px 15px; border-radius: 10px; font-size: 1.5rem; margin-left: -10px; border: 3px solid #000; }
 
         /* АДМИНКА */
-        #admin-screen { background: #0a0a0a; flex-direction: column; align-items: center; padding: 40px; overflow-y: auto; }
-        .admin-card { background: #1a1a1a; padding: 30px; border-radius: 20px; border: 2px solid #333; width: 100%; max-width: 500px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .admin-title { color: gold; font-size: 2rem; margin-bottom: 30px; text-align: center; }
-        .admin-controls { display: grid; grid-template-columns: 1fr 1fr auto; gap: 15px; margin-bottom: 30px; align-items: flex-end; }
-        .admin-field { display: flex; flex-direction: column; gap: 5px; }
-        .admin-field label { font-size: 0.8rem; color: #888; text-transform: uppercase; }
-        .admin-field input { padding: 12px; border-radius: 8px; border: 1px solid #444; background: #000; color: white; font-size: 1.1rem; text-align: center; }
-        .btn-ok { padding: 12px 20px; background: gold; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        .btn-start { width: 100%; padding: 25px; border-radius: 12px; font-size: 1.8rem; font-weight: bold; border: none; cursor: pointer; transition: 0.3s; }
-        #adm-list { background: #222; border-radius: 12px; padding: 15px; margin-top: 20px; font-family: monospace; font-size: 1.1rem; }
-        .btn-reset { margin-top: 40px; background: none; border: 1px solid #ff4444; color: #ff4444; padding: 10px 20px; border-radius: 8px; cursor: pointer; }
+        #admin { background: #111; display: none; flex-direction: column; align-items: center; padding: 20px; }
+        .adm-panel { background: #222; border: 2px solid var(--gold); border-radius: 20px; padding: 30px; width: 90%; max-width: 600px; }
+        .adm-input-row { display: flex; gap: 20px; justify-content: center; margin-bottom: 20px; }
+        .adm-input-row input { width: 70px; padding: 10px; font-size: 1.5rem; text-align: center; border-radius: 10px; }
+        .btn-start { width: 100%; padding: 30px; font-size: 2.5rem; background: #2e7d32; color: white; border: none; border-radius: 15px; cursor: pointer; font-weight: bold; }
+        .btn-start:disabled { background: #444; cursor: not-allowed; }
+        #adm-stats { margin-top: 20px; font-size: 1.2rem; background: #000; padding: 15px; border-radius: 10px; line-height: 1.6; }
 
         /* МОБИЛКА */
         #mobile { background: #1b5e20; padding: 20px; text-align: center; }
-        .table-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 20px 0; }
-        .t-btn { padding: 25px 10px; background: #fff; color: #000; border-radius: 12px; font-weight: bold; font-size: 1.2rem; border: 4px solid transparent; }
-        .t-btn.active { border-color: gold; background: #ffeb3b; }
-        .t-btn.full { opacity: 0.3; pointer-events: none; }
-        .m-in { width: 100%; padding: 15px; margin-bottom: 15px; font-size: 1.2rem; border-radius: 10px; border: none; text-align: center; box-sizing: border-box; }
-        .m-btn { width: 100%; padding: 20px; background: gold; font-weight: bold; font-size: 1.8rem; border-radius: 15px; border: none; }
-        
-        #victory-screen { background: rgba(0,0,0,0.95); flex-direction: column; align-items: center; justify-content: center; z-index: 999; }
-        canvas { position: absolute; top: 0; left: 0; pointer-events: none; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0; }
+        .table-btn { padding: 20px; background: #fff; color: #000; border-radius: 15px; font-size: 1.3rem; border: 5px solid transparent; font-weight: bold; }
+        .table-btn.selected { border-color: var(--gold); background: #ffeb3b; }
+        .table-btn.disabled { opacity: 0.3; pointer-events: none; }
+        .m-input { width: 100%; padding: 20px; border-radius: 15px; border: none; font-size: 1.4rem; margin-bottom: 20px; box-sizing: border-box; }
+
+        #victory { background: rgba(0,0,0,0.95); flex-direction: column; align-items: center; justify-content: center; z-index: 9999; }
     </style>
 </head>
 <body>
     <audio id="fanfare" src="https://actions.google.com/sounds/v1/human_voices/applause_clapping_and_cheering.ogg"></audio>
 
     <div id="lobby" class="page">
-        <div class="header-title"><h1>СОЛЛАЛЬ 2026</h1><h2>УРАЛЬСКИЕ СКАЧКИ</h2></div>
+        <h1 style="font-size: 6rem; color: var(--gold); margin: 0 0 20px 0;">СОЛЛАЛЬ 2026</h1>
         <div class="main-row">
-            <div class="qr-wrap"><div id="qrcode"></div></div>
-            <div class="plate">
-                <h2 style="color:gold; margin:0 0 15px 0;">КАК ИГРАТЬ:</h2>
-                <div style="font-size: 1.8rem; line-height: 1.6;">
-                    1. Сканируй QR-код<br>
-                    2. Выбери свой стол<br>
-                    3. Тряси телефон быстрее всех!
-                </div>
+            <div class="qr-area"><div id="qrcode"></div></div>
+            <div class="info-plate">
+                <h2 style="color:var(--gold); margin-top:0;">РЕГИСТРАЦИЯ:</h2>
+                1. Сканируй QR-код<br>
+                2. Выбери номер своего стола<br>
+                3. Жди команды "СТАРТ" и тряси!
             </div>
         </div>
-        <div id="team-list" style="margin-top: 40px; display: flex; gap: 15px; flex-wrap: wrap; justify-content: center;"></div>
+        <div id="lobby-list" style="margin-top: 40px; display: flex; gap: 20px;"></div>
     </div>
 
     <div id="stadium" class="page">
-        <div id="race-field" style="flex: 1; display: flex; flex-direction: column;"></div>
-        <div id="stats-bar" style="height: 100px; background: #000; display: flex; justify-content: space-around; align-items: center; border-top: 4px solid gold;"></div>
-        <div id="cnt" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 20rem; color: gold; display: none; text-shadow: 0 0 50px #000;">5</div>
+        <div id="track-container" style="flex: 1; display: flex; flex-direction: column;"></div>
+        <div id="stats-line" style="height: 100px; background: #000; display: flex; justify-content: space-around; align-items: center; border-top: 4px solid var(--gold);"></div>
+        <div id="countdown-overlay" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 30rem; color: var(--gold); display: none; text-shadow: 0 0 50px #000;">5</div>
     </div>
 
-    <div id="victory-screen" class="page">
-        <canvas id="fireworks"></canvas>
-        <h1 style="color:red; font-size:10rem; margin:0; text-shadow: 0 0 30px red; z-index:10">ФИНИШ</h1>
-        <h2 style="font-size:4rem; color: white; z-index:10">Победитель: <span id="win-name" style="color:gold"></span></h2>
-        <div id="admin-reset-btn" style="z-index: 100; margin-top: 30px;"></div>
+    <div id="victory" class="page">
+        <h1 style="color:red; font-size: 12rem; margin: 0; text-shadow: 0 0 40px red;">ФИНИШ</h1>
+        <h2 style="font-size: 5rem;">ПОБЕДИТЕЛЬ: <span id="winner-display" style="color:var(--gold);"></span></h2>
+        <button onclick="socket.emit('restart')" style="padding: 20px 50px; font-size: 2rem; background: var(--gold); border-radius: 15px; border: none; font-weight: bold; cursor: pointer;">ИГРАТЬ СНОВА</button>
     </div>
 
     <div id="mobile" class="page">
-        <div id="m-setup">
-            <h2 style="color:gold;">ВЫБЕРИ СТОЛ</h2>
-            <div id="table-selection" class="table-grid"></div>
-            <input type="text" id="m-name" class="m-in" placeholder="Название команды">
-            <button onclick="joinGame()" class="m-btn">УЧАСТВОВАТЬ</button>
+        <div id="m-join">
+            <h2 style="color:var(--gold); font-size: 2.5rem;">ВЫБЕРИ СТОЛ:</h2>
+            <div id="table-grid" class="grid"></div>
+            <input type="text" id="team-name" class="m-input" placeholder="Имя команды">
+            <button onclick="requestJoin()" style="width:100%; padding:25px; background:var(--gold); font-size:2rem; border-radius:20px; border:none; font-weight:bold;">ПОДКЛЮЧИТЬСЯ</button>
         </div>
-        <div id="shake-screen" class="page" style="flex-direction: column; align-items: center; justify-content: center;">
-            <h1 style="font-size: 5rem; color: gold;">ТРЯСИ!</h1>
-            <div style="font-size: 10rem;">🏇</div>
+        <div id="m-shake" class="page" style="flex-direction: column; align-items: center; justify-content: center;">
+            <h1 style="font-size: 6rem; color: var(--gold); margin: 0;">ТРЯСИ!</h1>
+            <div style="font-size: 15rem;">🏇</div>
         </div>
     </div>
 
-    <div id="admin-screen" class="page">
-        <div class="admin-title">АДМИНИСТРАТОР</div>
-        <div class="admin-card">
-            <div class="admin-controls">
-                <div class="admin-field">
-                    <label>Столов</label>
-                    <input type="number" id="adm-c" value="7">
-                </div>
-                <div class="admin-field">
-                    <label>Лимит</label>
-                    <input type="number" id="adm-l" value="3">
-                </div>
-                <button class="btn-ok" onclick="socket.emit('adminConfig', {totalTables: document.getElementById('adm-c').value, maxPlayers: document.getElementById('adm-l').value})">OK</button>
+    <div id="admin" class="page">
+        <div class="adm-panel">
+            <h1 style="color:var(--gold); text-align: center; margin-top:0;">АДМИН-ЦЕНТР</h1>
+            <div class="adm-input-row">
+                <div>СТОЛОВ: <input type="number" id="cfg-t" value="7"></div>
+                <div>ЛИМИТ: <input type="number" id="cfg-l" value="3"></div>
+                <button onclick="saveCfg()" style="background:var(--gold); padding: 10px 20px; border-radius: 10px; border:none; font-weight:bold;">OK</button>
             </div>
-            <button id="start-btn" class="btn-start" onclick="socket.emit('adminStartCountdown')" disabled>ОЖИДАНИЕ</button>
-            <div id="adm-list">Команды не подключены</div>
-            <center><button class="btn-reset" onclick="if(confirm('Сбросить игру?')) socket.emit('restart')">Сбросить всё</button></center>
+            <button id="btn-start-race" class="btn-start" onclick="socket.emit('adminStartCountdown')" disabled>СТАРТ ИГРЫ</button>
+            <div id="adm-stats">Команды не готовы...</div>
+            <center><button onclick="if(confirm('СБРОСИТЬ ВСЁ?')) socket.emit('restart')" style="margin-top: 30px; background: none; color: red; border: 1px solid red; padding: 10px; cursor: pointer;">СБРОСИТЬ СЕССИЮ</button></center>
         </div>
     </div>
 
@@ -136,97 +116,105 @@
     <script>
         const socket = io();
         const params = new URLSearchParams(window.location.search);
-        const isScreen = params.has('screen');
+        const isTV = params.has('screen');
         const isAdmin = params.has('admin');
 
-        let selectedTable = null;
-        let isJoined = false;
+        let selectedTableId = null;
+        let hasJoined = false;
 
-        if(isScreen) {
+        if (isTV) {
             document.getElementById('lobby').style.display = 'flex';
             new QRCode(document.getElementById("qrcode"), { text: window.location.origin, width: 350, height: 350 });
             window.onclick = () => document.getElementById('fanfare').load();
-        } else if(isAdmin) {
-            document.getElementById('admin-screen').style.display = 'flex';
-            document.getElementById('admin-reset-btn').innerHTML = `<button onclick="socket.emit('restart')" style="padding:15px 40px; font-size:1.5rem; background:gold; border-radius:10px; font-weight:bold;">ЗАНОВО</button>`;
+        } else if (isAdmin) {
+            document.getElementById('admin').style.display = 'flex';
         } else {
             document.getElementById('mobile').style.display = 'block';
         }
 
-        async function joinGame() {
-            if (!selectedTable) return alert("Выберите стол!");
-            // ЗАПРОС ДАТЧИКОВ (iOS)
+        function saveCfg() {
+            socket.emit('adminConfig', {
+                totalTables: document.getElementById('cfg-t').value,
+                maxPlayers: document.getElementById('cfg-l').value
+            });
+        }
+
+        async function requestJoin() {
+            if (!selectedTableId) return alert("Выбери номер стола!");
             if (typeof DeviceMotionEvent.requestPermission === 'function') {
                 const res = await DeviceMotionEvent.requestPermission();
-                if (res !== 'granted') return alert("Нужен доступ к движению!");
+                if (res !== 'granted') return alert("Нужен доступ к датчикам!");
             }
-            socket.emit('join', { tableId: selectedTable, teamName: document.getElementById('m-name').value });
+            socket.emit('join', { tableId: selectedTableId, teamName: document.getElementById('team-name').value });
         }
 
         socket.on('joinSuccess', () => {
-            isJoined = true;
-            document.getElementById('m-setup').style.display = 'none';
-            document.getElementById('shake-screen').style.display = 'flex';
+            hasJoined = true;
+            document.getElementById('m-join').style.display = 'none';
+            document.getElementById('m-shake').style.display = 'flex';
         });
 
         socket.on('updateState', (state) => {
-            const hasTeams = Object.keys(state.tables).length > 0;
-
-            if(isAdmin) {
-                const btn = document.getElementById('start-btn');
-                btn.disabled = !hasTeams || state.status !== 'LOBBY';
-                btn.style.background = btn.disabled ? '#333' : '#2e7d32';
-                btn.innerText = hasTeams ? (state.status === 'LOBBY' ? 'СТАРТ' : 'ИГРА ИДЕТ') : 'ЖДЕМ ИГРОКОВ';
-                document.getElementById('adm-list').innerHTML = hasTeams ? 
-                    Object.values(state.tables).map(t => `Стол ${t.id}: ${t.name} (👥${t.count}/${state.maxPlayersPerTable})`).join('<br>') : "Нет команд";
+            if (isAdmin) {
+                const count = Object.keys(state.tables).length;
+                document.getElementById('btn-start-race').disabled = count === 0 || state.status !== 'LOBBY';
+                document.getElementById('adm-stats').innerHTML = `<b>Подключено столов: ${count}</b><br>` + 
+                    Object.values(state.tables).map(t => `Стол ${t.id}: ${t.name} (👥 ${t.count}/${state.maxPlayersPerTable})`).join('<br>');
             }
 
-            if(!isScreen && !isAdmin && !isJoined) {
-                const grid = document.getElementById('table-selection');
+            if (!isTV && !isAdmin && !hasJoined) {
+                const grid = document.getElementById('table-grid');
                 grid.innerHTML = '';
-                for(let i=1; i<=state.totalTables; i++) {
+                for (let i = 1; i <= state.totalTables; i++) {
                     const t = state.tables[i];
-                    let b = document.createElement('div');
-                    b.className = 't-btn' + (t && t.count >= state.maxPlayersPerTable ? ' full' : '') + (selectedTable == i ? ' active' : '');
-                    b.innerText = `СТОЛ ${i}`;
-                    b.onclick = () => { selectedTable = i; socket.emit('updateState', state); };
-                    grid.appendChild(b);
+                    let btn = document.createElement('div');
+                    btn.className = `table-btn ${t && t.count >= state.maxPlayersPerTable ? 'disabled' : ''} ${selectedTableId == i ? 'selected' : ''}`;
+                    btn.innerText = `СТОЛ ${i}`;
+                    btn.onclick = () => { selectedTableId = i; socket.emit('updateState', state); };
+                    grid.appendChild(btn);
                 }
             }
 
-            if(isScreen) {
-                if(state.status === 'LOBBY') {
+            if (isTV) {
+                if (state.status === 'LOBBY') {
                     document.getElementById('lobby').style.display = 'flex';
                     document.getElementById('stadium').style.display = 'none';
-                    document.getElementById('victory-screen').style.display = 'none';
-                    document.getElementById('team-list').innerHTML = Object.values(state.tables)
-                        .map(t => `<div style="background:gold; color:black; padding:10px 20px; border-radius:10px; font-weight:bold;">${t.name} (👥${t.count})</div>`).join('');
-                } else if(state.status === 'FINISHED') {
-                    document.getElementById('victory-screen').style.display = 'flex';
-                    document.getElementById('win-name').innerText = state.winner;
+                    document.getElementById('victory').style.display = 'none';
+                    document.getElementById('lobby-list').innerHTML = Object.values(state.tables)
+                        .map(t => `<div style="background:var(--gold); color:#000; padding:15px; border-radius:12px; font-weight:bold; font-size:1.5rem;">${t.name} (👥 ${t.count})</div>`).join('');
+                } else if (state.status === 'FINISHED') {
+                    document.getElementById('victory').style.display = 'flex';
+                    document.getElementById('winner-display').innerText = state.winner;
                     document.getElementById('fanfare').play();
-                    startFireworks();
                 } else {
                     document.getElementById('lobby').style.display = 'none';
                     document.getElementById('stadium').style.display = 'flex';
-                    document.getElementById('cnt').style.display = state.status === 'COUNTDOWN' ? 'block' : 'none';
-                    document.getElementById('cnt').innerText = state.countdown;
-                    
-                    const field = document.getElementById('race-field');
-                    const sbar = document.getElementById('stats-bar');
-                    if(state.status === 'COUNTDOWN' && state.countdown === 5) { field.innerHTML = ''; sbar.innerHTML = ''; }
-                    
+                    const overlay = document.getElementById('countdown-overlay');
+                    overlay.style.display = state.status === 'COUNTDOWN' ? 'block' : 'none';
+                    overlay.innerText = state.countdown;
+
+                    const tracks = document.getElementById('track-container');
+                    const stats = document.getElementById('stats-line');
+                    if (state.status === 'COUNTDOWN' && state.countdown === 5) { tracks.innerHTML = ''; stats.innerHTML = ''; }
+
                     Object.values(state.tables).forEach(t => {
-                        let h = document.getElementById('h-'+t.id);
-                        if(!h) {
-                            field.insertAdjacentHTML('beforeend', `<div class="lane"><div class="finish-line"></div><div id="h-${t.id}" class="horse"><div class="horse-img">🏇</div><div class="horse-label">${t.name}</div></div></div>`);
-                            h = document.getElementById('h-'+t.id);
+                        let h = document.getElementById('h-' + t.id);
+                        if (!h) {
+                            tracks.insertAdjacentHTML('beforeend', `
+                                <div class="lane">
+                                    <div class="finish-line"></div>
+                                    <div id="h-${t.id}" class="horse">
+                                        <div class="horse-img">🏇</div>
+                                        <div class="horse-name">${t.name}</div>
+                                    </div>
+                                </div>`);
+                            h = document.getElementById('h-' + t.id);
                         }
-                        h.style.left = (t.score * 0.9) + '%';
+                        h.style.left = (t.score * 0.88) + '%';
                         
-                        let s = document.getElementById('s-'+t.id);
-                        if(!s) sbar.insertAdjacentHTML('beforeend', `<div id="s-${t.id}" style="text-align:center;"><b>${t.name}</b><br>${Math.floor(t.score)}%</div>`);
-                        else s.innerHTML = `<b>${t.name}</b><br>${Math.floor(t.score)}%`;
+                        let s = document.getElementById('s-' + t.id);
+                        if (!s) stats.insertAdjacentHTML('beforeend', `<div id="s-${t.id}" style="text-align:center;"><b>${t.name}</b><br>👥 ${t.count} | ${Math.floor(t.score)}%</div>`);
+                        else s.innerHTML = `<b>${t.name}</b><br>👥 ${t.count} | ${Math.floor(t.score)}%`;
                     });
                 }
             }
@@ -234,36 +222,18 @@
 
         socket.on('gameRestarted', () => location.reload());
 
-        // ОБРАБОТЧИК ТРЯСКИ
-        let lastX, lastY, lastZ;
-        let threshold = 15; // Порог чувствительности
+        // НАДЕЖНЫЙ ОБРАБОТЧИК ТРЯСКИ
+        let lastShake = 0;
         window.addEventListener('devicemotion', (e) => {
-            if(!isJoined) return;
-            let acc = e.accelerationIncludingGravity;
-            let delta = Math.abs(acc.x - lastX) + Math.abs(acc.y - lastY) + Math.abs(acc.z - lastZ);
-            if (delta > threshold) {
+            if (!hasJoined) return;
+            const acc = e.accelerationIncludingGravity;
+            const totalAcc = Math.abs(acc.x) + Math.abs(acc.y) + Math.abs(acc.z);
+            const now = Date.now();
+            if (totalAcc > 25 && (now - lastShake > 80)) {
                 socket.emit('shake');
+                lastShake = now;
             }
-            lastX = acc.x; lastY = acc.y; lastZ = acc.z;
         });
-
-        function startFireworks() {
-            const canvas = document.getElementById('fireworks');
-            const ctx = canvas.getContext('2d');
-            canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-            let parts = [];
-            function loop() {
-                ctx.clearRect(0,0,canvas.width, canvas.height);
-                if(parts.length < 50) parts.push({x:Math.random()*canvas.width, y:canvas.height, vx:Math.random()*4-2, vy:Math.random()*-15-5, c:`hsl(${Math.random()*360},100%,50%)`});
-                parts.forEach((p,i) => {
-                    p.x += p.vx; p.y += p.vy; p.vy += 0.2;
-                    ctx.fillStyle = p.c; ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, 7); ctx.fill();
-                    if(p.y > canvas.height) parts.splice(i,1);
-                });
-                requestAnimationFrame(loop);
-            }
-            loop();
-        }
     </script>
 </body>
 </html>
