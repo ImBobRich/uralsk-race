@@ -13,74 +13,82 @@
         }
         body { margin: 0; padding: 0; background: #000; font-family: 'Arial Black', sans-serif; overflow: hidden; color: white; }
 
-        /* ЭКРАН ТВ */
+        /* ЭКРАН ОЖИДАНИЯ */
+        #lobby { 
+            display: none; width: 100vw; height: 100vh; 
+            background: radial-gradient(circle, #4a0000 0%, #000 100%);
+            flex-direction: column; align-items: center; justify-content: center; 
+        }
+        .qr-box { background: white; padding: 15px; border-radius: 10px; margin-bottom: 20px; }
+        #team-list { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; }
+        .team-tag { background: var(--kr-gold); color: #000; padding: 10px 20px; border-radius: 5px; font-weight: bold; }
+
+        /* ЭКРАН СКАЧЕК */
         #stadium { display: none; width: 100vw; height: 100vh; flex-direction: column; background: #1a3317; position: relative; }
-        
         #race-field { 
             flex: 1; position: relative; overflow: hidden; 
             background: linear-gradient(to bottom, #4facfe 0%, #00f2fe 30%, #ffffff 30%, #2d5a27 31%);
-            perspective: 600px; /* Создаем глубину для 3D */
+            perspective: 1000px;
         }
 
-        /* Настоящая перспектива дорожек */
+        /* Дорожки в перспективе */
         #tracks-container {
-            position: absolute; bottom: -50px; left: 50%; 
-            width: 150%; height: 80%; 
-            transform: translateX(-50%) rotateX(60deg); /* Наклон всей плоскости */
+            position: absolute; bottom: -10%; left: 50%; 
+            width: 140%; height: 80%; 
+            transform: translateX(-50%) rotateX(60deg);
             transform-origin: bottom center;
-            display: flex; background: #333;
-            border: 10px solid white;
+            display: flex; background: #444; border: 12px solid white;
         }
-        .lane { flex: 1; border-right: 4px solid rgba(255,255,255,0.5); position: relative; }
-        .lane::after { content: ""; position: absolute; top:0; left:0; width:100%; height:10px; background: white; } /* Линия финиша */
+        .lane { flex: 1; border-right: 4px solid rgba(255,255,255,0.4); position: relative; }
+        .lane::after { content: "FINISH"; position: absolute; top:0; width:100%; height:20px; background:white; color:red; font-size:10px; text-align:center; }
 
-        /* Лошадь */
+        /* Лошади (рисуются поверх дорожек) */
         .horse {
-            position: absolute; 
-            bottom: 0; left: 50%; transform: translateX(-50%);
+            position: absolute; transform: translateX(-50%) translateY(-50%);
             display: flex; flex-direction: column; align-items: center;
-            transition: bottom 0.1s linear;
-            z-index: 10;
+            transition: all 0.2s linear; z-index: 100;
         }
-        .horse-emoji { 
-            font-size: 6rem; 
-            transform: scaleX(-1) rotateX(-20deg); /* Наклон наездника, чтобы не смотрел в небо */
-            filter: drop-shadow(0 20px 10px rgba(0,0,0,0.5));
-        }
+        .horse-emoji { font-size: 5rem; transform: scaleX(-1); filter: drop-shadow(0 15px 10px rgba(0,0,0,0.6)); }
         .horse-label { 
-            background: rgba(255,255,255,0.9); color: #000; padding: 5px 15px; 
-            border-radius: 10px; font-size: 1.4rem; border: 3px solid #000;
-            margin-bottom: -10px; white-space: nowrap;
+            background: white; color: #000; padding: 4px 12px; border-radius: 8px; 
+            font-size: 1.2rem; border: 2px solid #000; margin-bottom: -10px; white-space: nowrap;
         }
 
         /* ПОБЕДНЫЙ ЭКРАН */
         #victory-screen {
             position: fixed; top:0; left:0; width:100%; height:100%;
-            background: rgba(0,0,0,0.85); display: none;
-            flex-direction: column; align-items: center; justify-content: center;
-            z-index: 1000; text-align: center;
+            background: rgba(0,0,0,0.9); display: none;
+            flex-direction: column; align-items: center; justify-content: center; z-index: 9999;
         }
-        .firework { position: absolute; width: 10px; height: 10px; border-radius: 50%; box-shadow: 0 0 50px 20px gold; animation: explode 1s infinite; }
+        #victory-screen h1 { font-size: 6rem; color: var(--kr-gold); margin: 0; text-shadow: 0 0 20px red; }
+        #winner-name { font-size: 8rem; color: white; margin: 20px 0; }
 
-        @keyframes explode { 0% { transform: scale(0); opacity: 1; } 100% { transform: scale(20); opacity: 0; } }
+        /* ОТСЧЕТ */
+        #countdown-overlay {
+            position: fixed; top:0; left:0; width:100%; height:100%;
+            background: rgba(0,0,0,0.8); display: none;
+            align-items: center; justify-content: center;
+            font-size: 20rem; color: var(--kr-gold); z-index: 5000;
+        }
 
-        /* Остальные стили (Lobby, Mobile) остаются из прошлого шага */
-        #lobby { display: none; width: 100vw; height: 100vh; background: radial-gradient(circle, #4a0000 0%, #000 100%); flex-direction: column; align-items: center; justify-content: center; }
-        .qr-container { background: white; padding: 15px; border-radius: 10px; margin: 20px; }
-        #countdown-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; font-size: 15rem; color: var(--kr-gold); z-index: 500; }
-        
-        #mobile { display: none; height: 100vh; background: #1b5e20; text-align: center; padding-top: 30px; }
-        .setup-input { padding: 15px; width: 80%; font-size: 1.2rem; margin: 10px 0; border-radius: 10px; border: none; }
-        #energy-bar { width: 85%; height: 40px; background: #222; border-radius: 20px; margin: 20px auto; border: 3px solid white; overflow: hidden; }
+        /* МОБИЛЬНЫЙ ПУЛЬТ */
+        #mobile { display: none; height: 100vh; background: #1b5e20; text-align: center; padding: 20px; }
+        .m-input { width: 80%; padding: 20px; font-size: 1.5rem; border-radius: 10px; border: none; margin: 10px 0; }
+        #energy-bar { width: 90%; height: 40px; background: #222; border-radius: 20px; margin: 20px auto; border: 3px solid white; overflow: hidden; }
         #energy-fill { width: 0%; height: 100%; background: linear-gradient(90deg, gold, orange, red); transition: 0.1s; }
+        
+        /* АДМИНКА */
+        #admin-panel { position: fixed; bottom: 20px; left: 20px; z-index: 10000; display: none; }
+        .admin-btn { padding: 20px 40px; background: red; color: white; font-size: 1.5rem; border: none; border-radius: 10px; cursor: pointer; }
     </style>
 </head>
 <body>
 
     <div id="lobby">
-        <h1 style="color: var(--kr-gold); font-size: 3rem;">УРАЛЬСКИЕ СКАЧКИ 2026</h1>
-        <div class="qr-container" id="player-qr"></div>
-        <div id="team-list" style="display:flex; gap:10px;"></div>
+        <h1 style="color: var(--kr-gold); font-size: 3rem; margin-bottom: 10px;">СОЛЬНАЛЬ 2026: УРАЛЬСКИЕ СКАЧКИ</h1>
+        <div class="qr-box" id="player-qr"></div>
+        <h2 style="margin-bottom: 30px;">СКАНИРУЙ И ВЫБИРАЙ СВОЙ СТОЛ!</h2>
+        <div id="team-list"></div>
     </div>
 
     <div id="stadium">
@@ -93,43 +101,41 @@
                 <div class="lane" style="background:var(--lane-5)"></div>
                 <div class="lane" style="background:var(--lane-6)"></div>
             </div>
-            <div id="horses-layer" style="position: absolute; top:0; left:0; width:100%; height:100%; pointer-events: none;"></div>
+            <div id="horses-layer" style="position: absolute; top:0; left:0; width:100%; height:100%;"></div>
         </div>
     </div>
 
     <div id="victory-screen">
-        <div class="firework" style="top:20%; left:30%;"></div>
-        <div class="firework" style="top:40%; left:70%;"></div>
-        <h1 style="font-size: 5rem; color: var(--kr-gold); text-shadow: 0 0 30px red;">ПОБЕДИТЕЛЬ</h1>
-        <h2 id="winner-name" style="font-size: 7rem; margin: 0;"></h2>
-        <button onclick="location.reload()" style="margin-top:50px; padding:20px; font-size:1.5rem;">НОВАЯ ИГРА</button>
+        <h1>ПОБЕДИТЕЛЬ!</h1>
+        <div id="winner-name">КОМАНДА</div>
+        <button onclick="socket.emit('restart')" style="padding:20px 40px; font-size:1.5rem;">СБРОСИТЬ ИГРУ</button>
     </div>
 
     <div id="mobile">
         <div id="m-setup">
-            <h1>РЕГИСТРАЦИЯ</h1>
-            <input type="number" id="m-table" class="setup-input" placeholder="НОМЕР СТОЛА">
-            <input type="text" id="m-name" class="setup-input" placeholder="КОМАНДА">
-            <button onclick="mJoin()" style="background:var(--kr-gold); padding:20px; border-radius:10px; font-size:1.5rem;">ГОТОВ!</button>
+            <h1 style="font-size: 2.5rem;">ВАШ СТОЛ?</h1>
+            <input type="number" id="m-table" class="m-input" placeholder="НОМЕР СТОЛА">
+            <input type="text" id="m-name" class="m-input" placeholder="ИМЯ КОМАНДЫ">
+            <button onclick="mJoin()" style="background:var(--kr-gold); padding:25px 50px; font-size:2rem; border-radius:15px; border:none; margin-top:20px;">ГОТОВ!</button>
         </div>
-        <div id="m-wait" style="display:none;">
-            <h2 id="m-team-display"></h2>
+        <div id="m-race" style="display:none;">
+            <h1 id="m-team-name" style="color: gold;"></h1>
             <div id="energy-bar"><div id="energy-fill"></div></div>
-            <p>ТРЯСИ ТЕЛЕФОН ПОСЛЕ СТАРТА!</p>
+            <h2 id="m-status">ЖДЕМ СТАРТА...</h2>
         </div>
+    </div>
+
+    <div id="admin-panel">
+        <button class="admin-btn" onclick="socket.emit('adminStartCountdown')">НА СТАРТ!</button>
     </div>
 
     <div id="countdown-overlay">5</div>
-    
-    <div id="admin-panel" style="position:fixed; bottom:10px; left:10px; display:none; z-index:2000;">
-        <button onclick="socket.emit('adminStartCountdown')" style="padding:20px; background:red; color:white;">СТАРТ</button>
-    </div>
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        const isAdmin = urlParams.has('admin');
-        const isScreen = urlParams.has('screen');
+        const params = new URLSearchParams(window.location.search);
+        const isAdmin = params.has('admin');
+        const isScreen = params.has('screen');
         const socket = io({ query: { admin: isAdmin } });
 
         if (isScreen) {
@@ -140,21 +146,24 @@
         }
         if (isAdmin) document.getElementById('admin-panel').style.display = 'block';
 
+        // Логика игрока
         function mJoin() {
             const tableId = document.getElementById('m-table').value;
             const teamName = document.getElementById('m-name').value;
-            if(!tableId) return alert("Укажите стол");
+            if(!tableId) return alert("Введите номер стола!");
+            
             socket.emit('join', { tableId, teamName });
             document.getElementById('m-setup').style.display = 'none';
-            document.getElementById('m-wait').style.display = 'block';
-            document.getElementById('m-team-display').innerText = teamName || "Стол "+tableId;
+            document.getElementById('m-race').style.display = 'block';
+            document.getElementById('m-team-name').innerText = teamName || "Стол "+tableId;
 
+            // Активация датчика
             if (window.DeviceMotionEvent && typeof DeviceMotionEvent.requestPermission === 'function') {
                 DeviceMotionEvent.requestPermission();
             }
             window.addEventListener('devicemotion', (e) => {
-                let acc = e.accelerationIncludingGravity;
-                if (Math.abs(acc.x) + Math.abs(acc.y) + Math.abs(acc.z) > 22) {
+                let a = e.accelerationIncludingGravity;
+                if (Math.abs(a.x) + Math.abs(a.y) + Math.abs(a.z) > 24) {
                     socket.emit('shake');
                     document.getElementById('energy-fill').style.width = '100%';
                     setTimeout(() => document.getElementById('energy-fill').style.width = '0%', 100);
@@ -162,55 +171,60 @@
             });
         }
 
+        // Синхронизация состояний
         socket.on('updateState', (state) => {
-            if (!isScreen) return;
+            if (isScreen) {
+                if (state.status === 'LOBBY') {
+                    document.getElementById('stadium').style.display = 'none';
+                    document.getElementById('victory-screen').style.display = 'none';
+                    document.getElementById('lobby').style.display = 'flex';
+                    document.getElementById('team-list').innerHTML = Object.values(state.tables)
+                        .map(t => `<div class="team-tag">${t.name}</div>`).join('');
+                }
+                
+                if (state.status === 'COUNTDOWN') {
+                    document.getElementById('countdown-overlay').style.display = 'flex';
+                    // Визуальный счетчик
+                    let c = 5;
+                    const ti = setInterval(() => {
+                        c--; 
+                        if(c > 0) document.getElementById('countdown-overlay').innerText = c;
+                        else clearInterval(ti);
+                    }, 1000);
+                }
 
-            if (state.status === 'LOBBY') {
-                document.getElementById('team-list').innerHTML = Object.values(state.tables).map(t => `<div style="background:gold; color:black; padding:10px;">${t.name}</div>`).join('');
-            }
+                if (state.status === 'RACING') {
+                    document.getElementById('countdown-overlay').style.display = 'none';
+                    document.getElementById('lobby').style.display = 'none';
+                    document.getElementById('stadium').style.display = 'flex';
+                    renderHorses(state.tables);
+                }
 
-            if (state.status === 'COUNTDOWN' && document.getElementById('countdown-overlay').style.display !== 'flex') {
-                startCountdown();
-            }
-
-            if (state.status === 'RACING') {
-                document.getElementById('stadium').style.display = 'flex';
-                document.getElementById('lobby').style.display = 'none';
-                renderHorses(state.tables);
+                if (state.status === 'FINISHED') {
+                    renderHorses(state.tables);
+                }
+            } else {
+                // Логика для мобилок
+                const statusText = document.getElementById('m-status');
+                if (state.status === 'RACING') statusText.innerText = "ТРЯСИ БЫСТРЕЕ!!!";
+                if (state.status === 'COUNTDOWN') statusText.innerText = "ПРИГОТОВИТЬСЯ...";
             }
         });
-
-        function startCountdown() {
-            const overlay = document.getElementById('countdown-overlay');
-            overlay.style.display = 'flex';
-            let c = 5;
-            overlay.innerText = c;
-            const t = setInterval(() => {
-                c--;
-                overlay.innerText = c;
-                if (c <= 0) {
-                    clearInterval(t);
-                    overlay.style.display = 'none';
-                    if (isAdmin) socket.emit('adminSetRacing');
-                }
-            }, 1000);
-        }
 
         function renderHorses(tables) {
             const layer = document.getElementById('horses-layer');
             layer.innerHTML = '';
+            
             Object.values(tables).forEach(t => {
                 const laneIdx = (parseInt(t.id) - 1) % 6;
                 const progress = t.score / 100;
 
-                // Математика перспективы:
-                // По мере продвижения вперед (progress), лошадь должна сближаться к центру
-                const startX = (laneIdx + 0.5) * (100 / 6);
-                const horizonX = 50; // Точка схода в центре
-                const currentX = startX + (horizonX - startX) * (progress * 0.8);
+                // Точная перспектива
+                const startX = (laneIdx + 0.5) * (100 / 6); // Позиция внизу
+                const horizonX = 50; // Точка схода
+                const currentX = startX + (horizonX - startX) * (progress * 0.85);
 
-                // По мере продвижения вперед, лошадь должна подниматься к линии горизонта (30% высоты экрана)
-                const startY = 90; // Низ экрана
+                const startY = 85; // Старт (низ экрана)
                 const horizonY = 32; // Линия горизонта
                 const currentY = startY - (startY - horizonY) * progress;
 
@@ -218,11 +232,13 @@
                 div.className = 'horse';
                 div.style.left = currentX + '%';
                 div.style.top = currentY + '%';
-                // Уменьшаем масштаб по мере удаления
-                div.style.transform = `translateX(-50%) scale(${1.3 - (progress * 0.8)})`;
+                
+                const scale = 1.6 - (progress * 0.9); // Уменьшение к горизонту
+                div.style.transform = `translateX(-50%) translateY(-50%) scale(${scale})`;
+                div.style.zIndex = Math.floor(100 - t.score);
 
                 div.innerHTML = `
-                    <div class="horse-label">${t.name}</div>
+                    <div class="horse-label" style="font-size:${1 + scale}rem">${t.name}</div>
                     <div class="horse-emoji">🏇</div>
                 `;
                 layer.appendChild(div);
@@ -230,8 +246,10 @@
         }
 
         socket.on('winner', (data) => {
-            document.getElementById('victory-screen').style.display = 'flex';
-            document.getElementById('winner-name').innerText = data.name;
+            if (isScreen) {
+                document.getElementById('victory-screen').style.display = 'flex';
+                document.getElementById('winner-name').innerText = data.name;
+            }
         });
 
         socket.on('gameRestarted', () => location.reload());
