@@ -10,7 +10,7 @@ app.use(express.static(__dirname + '/public'));
 
 let gameState = {
     status: 'LOBBY', 
-    tables: {}, // Здесь хранятся все столы
+    tables: {}, 
     winner: null
 };
 
@@ -18,32 +18,23 @@ io.on('connection', (socket) => {
     const isAdmin = socket.handshake.query.admin === 'true';
 
     socket.on('join', ({ tableId, teamName }) => {
-        // Сохраняем ID стола в сессии сокета
         socket.tableId = tableId;
-
-        // Если этого стола еще нет в списке — создаем
         if (!gameState.tables[tableId]) {
             gameState.tables[tableId] = { 
                 id: tableId, 
                 name: teamName || `Стол №${tableId}`, 
-                score: 0,
-                playersCount: 1 
+                score: 0 
             };
-        } else {
-            // Если стол уже есть, просто увеличиваем количество игроков за ним
-            gameState.tables[tableId].playersCount++;
         }
-        
-        // Отправляем обновленное состояние ВСЕМ, чтобы все увидели новый стол
         io.emit('updateState', gameState);
     });
 
     socket.on('shake', () => {
+        // Тряска работает ТОЛЬКО в режиме RACING
         if (gameState.status !== 'RACING' || !socket.tableId) return;
         
         const table = gameState.tables[socket.tableId];
         if (table && table.score < 100) {
-            // Энергия всех игроков стола суммируется здесь
             table.score += 0.4; 
             
             if (table.score >= 100) {
@@ -52,6 +43,7 @@ io.on('connection', (socket) => {
                 gameState.winner = table.name;
                 io.emit('winner', { name: table.name });
             }
+            // Оптимизация: шлем обновления только во время гонки
             io.emit('updateState', gameState);
         }
     });
