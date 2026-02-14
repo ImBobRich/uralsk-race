@@ -3,54 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Сольналь 2026</title>
+    <title>Уральские Скачки 2026</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         body { margin: 0; background: #000; font-family: 'Arial Black', sans-serif; overflow: hidden; color: white; }
         #lobby, #stadium, #victory-screen, #mobile { display: none; width: 100vw; height: 100vh; }
 
-        /* ЛОББИ - НЕ МЕНЯЕМ */
+        /* ИСХОДНЫЙ ИНТЕРФЕЙС ЛОББИ */
         #lobby { flex-direction: column; align-items: center; justify-content: center; background: radial-gradient(circle, #4a0000 0%, #000 100%); }
         .qr-box { background: white; padding: 15px; border-radius: 10px; margin: 20px; }
-        #team-list { display: flex; flex-wrap: wrap; gap: 10px; }
-        .tag { background: #ffd700; color: #000; padding: 10px 20px; border-radius: 5px; font-weight: bold; }
+        #team-list { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+        .team-tag { background: #ffd700; color: #000; padding: 10px 20px; border-radius: 5px; font-weight: bold; }
 
-        /* СТАДИОН 2D */
+        /* СТАДИОН 2D ГОРИЗОНТАЛЬНЫЙ */
         #stadium { flex-direction: column; background: #2d5a27; }
-        #race-field { flex: 1; display: flex; flex-direction: column; padding: 5px 0; }
+        #race-field { flex: 1; display: flex; flex-direction: column; padding: 10px 0; }
         
         .track-lane {
             flex: 1; position: relative; border-bottom: 2px solid rgba(255,255,255,0.2);
             display: flex; align-items: center;
         }
-        /* Цвета как на скрине */
-        .track-lane:nth-child(1) { background: #f4b4fe; }
-        .track-lane:nth-child(2) { background: #ffff00; }
-        .track-lane:nth-child(3) { background: #8eff8e; }
-        .track-lane:nth-child(4) { background: #4df4ff; }
-        .track-lane:nth-child(5) { background: #ff8e8e; }
-        .track-lane:nth-child(6) { background: #cedc00; }
+        .track-lane:nth-child(odd) { background: rgba(255,255,255,0.05); }
+        .track-lane:nth-child(even) { background: rgba(0,0,0,0.1); }
 
         .finish-line {
-            position: absolute; right: 50px; top: 0; bottom: 0; width: 50px;
+            position: absolute; right: 60px; top: 0; bottom: 0; width: 40px;
             background: repeating-linear-gradient(0deg, #fff, #fff 15px, #000 15px, #000 30px);
             border-left: 5px solid gold; z-index: 5;
         }
 
         .horse-unit {
             position: absolute; left: 0; display: flex; align-items: center;
-            transition: left 0.05s linear; /* Ускорили реакцию */
-            z-index: 10;
+            transition: left 0.1s linear; z-index: 10;
         }
         .horse-img { 
-            font-size: 5rem; 
-            transform: scaleX(-1); /* РАЗВОРОТ МОРДОЙ ВПРАВО */
+            font-size: 5rem; transform: scaleX(-1); /* МОРДОЙ ВПРАВО */
             filter: drop-shadow(5px 5px 5px rgba(0,0,0,0.3));
         }
         .horse-label { 
             background: white; color: black; padding: 5px 15px; border-radius: 8px; 
-            font-weight: bold; font-size: 1.5rem; border: 3px solid #000; 
-            margin-left: -20px; z-index: 11;
+            font-weight: bold; font-size: 1.4rem; border: 3px solid #000; margin-left: -15px;
         }
 
         #cnt-overlay {
@@ -61,7 +53,7 @@
         #victory-screen { flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.9); z-index: 200; }
         
         /* МОБИЛКА */
-        #mobile { text-align: center; padding: 20px; background: #1b5e20; }
+        #mobile { text-align: center; padding: 20px; background: #1b5e20; box-sizing: border-box; }
         .m-input { width: 100%; padding: 15px; margin: 10px 0; font-size: 1.2rem; border-radius: 10px; }
         #energy-bar { width: 100%; height: 40px; background: #222; border: 3px solid white; border-radius: 20px; overflow: hidden; margin: 20px 0; }
         #energy-fill { width: 0%; height: 100%; background: gold; transition: 0.1s; }
@@ -83,22 +75,22 @@
     </div>
 
     <div id="victory-screen">
-        <h1 style="color: gold; font-size: 5rem;">ПОБЕДИТЕЛЬ!</h1>
+        <h1 style="color: gold; font-size: 5rem;">ФИНИШ!</h1>
         <div id="winner-name" style="font-size: 6rem; color: #fff;"></div>
-        <button onclick="socket.emit('restart')" style="padding: 20px 50px; font-size: 1.5rem; background: gold; border: none; font-weight: bold; cursor: pointer; border-radius: 10px; margin-top: 20px;">РЕСТАРТ</button>
+        <button onclick="socket.emit('restart')" style="padding: 20px 50px; font-size: 1.5rem; background: gold; border: none; font-weight: bold; cursor: pointer; border-radius: 10px;">РЕСТАРТ</button>
     </div>
 
     <div id="mobile">
         <div id="m-setup">
             <h2 style="color: gold;">РЕГИСТРАЦИЯ</h2>
             <input type="number" id="m-table" class="m-input" placeholder="№ СТОЛА">
-            <input type="text" id="m-name" class="m-input" placeholder="КОМАНДА">
-            <button onclick="join()" style="padding: 20px; width: 100%; background: gold; border: none; font-weight: bold; border-radius: 10px; font-size: 1.5rem;">В ИГРУ</button>
+            <input type="text" id="m-name" class="m-input" placeholder="НАЗВАНИЕ">
+            <button onclick="join()" style="padding: 20px; width: 100%; background: gold; border: none; font-weight: bold; border-radius: 10px; font-size: 1.5rem;">ГОТОВ</button>
         </div>
         <div id="m-race" style="display:none;">
             <h2 id="m-team-display" style="color: gold;"></h2>
             <div id="energy-bar"><div id="energy-fill"></div></div>
-            <p style="font-size: 1.5rem;">ТРЯСИ ТЕЛЕФОН!!!</p>
+            <p style="font-size: 1.5rem;">ТРЯСИТЕ ТЕЛЕФОН!</p>
         </div>
     </div>
 
@@ -141,40 +133,41 @@
         socket.on('updateState', (state) => {
             if (!isScreen) return;
             
+            // ЖЕСТКАЯ ПРОВЕРКА ЭКРАНА: не уходим из лобби, пока статус не изменится
             if (state.status === 'LOBBY') {
                 document.getElementById('lobby').style.display = 'flex';
                 document.getElementById('stadium').style.display = 'none';
                 document.getElementById('victory-screen').style.display = 'none';
-                document.getElementById('team-list').innerHTML = Object.values(state.tables).map(t => `<div class="tag">${t.name}</div>`).join('');
-            } else {
-                document.getElementById('lobby').style.display = 'none';
-                document.getElementById('stadium').style.display = 'flex';
-                
-                const overlay = document.getElementById('cnt-overlay');
-                if (state.status === 'COUNTDOWN') {
-                    overlay.style.display = 'flex';
-                    overlay.innerText = state.countdown;
-                } else {
-                    overlay.style.display = 'none';
-                }
-                
-                const field = document.getElementById('race-field');
-                field.innerHTML = '';
-                Object.values(state.tables).forEach(t => {
-                    const lane = document.createElement('div');
-                    lane.className = 'track-lane';
-                    // Расчет пути до финишной линии (она на 50px от правого края)
-                    const xPos = t.score * 0.9; 
-                    lane.innerHTML = `
-                        <div class="finish-line"></div>
-                        <div class="horse-unit" style="left: ${xPos}%">
-                            <div class="horse-img">🏇</div>
-                            <div class="horse-label">${t.name}</div>
-                        </div>
-                    `;
-                    field.appendChild(lane);
-                });
+                document.getElementById('team-list').innerHTML = Object.values(state.tables).map(t => `<div class="team-tag">${t.name}</div>`).join('');
+                return; 
             }
+
+            document.getElementById('lobby').style.display = 'none';
+            document.getElementById('stadium').style.display = 'flex';
+            
+            const overlay = document.getElementById('cnt-overlay');
+            if (state.status === 'COUNTDOWN') {
+                overlay.style.display = 'flex';
+                overlay.innerText = state.countdown;
+            } else {
+                overlay.style.display = 'none';
+            }
+            
+            const field = document.getElementById('race-field');
+            field.innerHTML = '';
+            Object.values(state.tables).forEach(t => {
+                const lane = document.createElement('div');
+                lane.className = 'track-lane';
+                const xPos = t.score * 0.88; 
+                lane.innerHTML = `
+                    <div class="finish-line"></div>
+                    <div class="horse-unit" style="left: ${xPos}%">
+                        <div class="horse-img">🏇</div>
+                        <div class="horse-label">${t.name}</div>
+                    </div>
+                `;
+                field.appendChild(lane);
+            });
         });
 
         socket.on('winner', (d) => {
