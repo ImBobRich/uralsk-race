@@ -15,6 +15,9 @@ let gameState = {
     countdown: 5
 };
 
+// Функция для рассылки состояния (чтобы ничего не зависало)
+const broadcast = () => io.emit('updateState', gameState);
+
 io.on('connection', (socket) => {
     const isAdmin = socket.handshake.query.admin === 'true';
 
@@ -27,50 +30,50 @@ io.on('connection', (socket) => {
                 score: 0 
             };
         }
-        io.emit('updateState', gameState);
+        broadcast();
     });
 
     socket.on('shake', () => {
         if (gameState.status !== 'RACING' || !socket.tableId) return;
-        
         const table = gameState.tables[socket.tableId];
         if (table && table.score < 100) {
-            // Очень медленный прирост для долгой гонки
-            table.score += 0.07; 
-            
+            table.score += 0.08; // Скорость замедлена
             if (table.score >= 100) {
                 table.score = 100;
                 gameState.status = 'FINISHED';
                 gameState.winner = table.name;
                 io.emit('winner', { name: table.name });
             }
-            io.emit('updateState', gameState);
         }
     });
 
     socket.on('adminStartCountdown', () => {
         if (gameState.status !== 'LOBBY') return;
-        
         gameState.status = 'COUNTDOWN';
         gameState.countdown = 5;
-        io.emit('updateState', gameState);
+        broadcast();
 
-        const interval = setInterval(() => {
+        const timer = setInterval(() => {
             gameState.countdown--;
             if (gameState.countdown <= 0) {
-                clearInterval(interval);
+                clearInterval(timer);
                 gameState.status = 'RACING';
+                // Запускаем интенсивное обновление только во время гонки
+                const raceInterval = setInterval(() => {
+                    broadcast();
+                    if (gameState.status !== 'RACING') clearInterval(raceInterval);
+                }, 100);
             }
-            io.emit('updateState', gameState);
+            broadcast();
         }, 1000);
     });
 
     socket.on('restart', () => {
         gameState = { status: 'LOBBY', tables: {}, winner: null, countdown: 5 };
         io.emit('gameRestarted');
-        io.emit('updateState', gameState);
+        broadcast();
     });
 });
 
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`Server live on 3000`));
+const PORT = 3000;
+server.listen(PORT, () => console.log(`Сервер: http://localhost:${PORT}`));
