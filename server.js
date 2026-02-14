@@ -40,7 +40,7 @@ io.on('connection', (socket) => {
         if (gameState.status !== 'RACING' || !socket.tableId) return;
         let t = gameState.tables[socket.tableId];
         if (t && t.score < 100) {
-            t.score += 0.2; 
+            t.score += 0.4; // Чуть увеличил шаг для динамики
             if (t.score >= 100) {
                 t.score = 100;
                 gameState.status = 'FINISHED';
