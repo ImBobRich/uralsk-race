@@ -13,7 +13,8 @@ let gameState = {
     tables: {}, 
     countdown: 5,
     winner: null,
-    totalTables: 7 
+    totalTables: 7,
+    maxPlayersPerTable: 5 // Новая настройка лимита игроков
 };
 
 const broadcast = () => io.emit('updateState', gameState);
@@ -23,6 +24,14 @@ io.on('connection', (socket) => {
 
     socket.on('join', ({ tableId, teamName }) => {
         if (!tableId) return;
+        
+        // Проверка лимита игроков
+        const currentCount = gameState.tables[tableId] ? gameState.tables[tableId].count : 0;
+        if (currentCount >= gameState.maxPlayersPerTable) {
+            socket.emit('errorMsg', 'В этой команде уже максимум игроков!');
+            return;
+        }
+
         socket.tableId = tableId;
         if (!gameState.tables[tableId]) {
             gameState.tables[tableId] = { 
@@ -51,13 +60,14 @@ io.on('connection', (socket) => {
         }
     });
 
-    socket.on('adminSetTables', (num) => {
-        gameState.totalTables = parseInt(num) || 7;
+    socket.on('adminConfig', ({ totalTables, maxPlayers }) => {
+        gameState.totalTables = parseInt(totalTables) || 7;
+        gameState.maxPlayersPerTable = parseInt(maxPlayers) || 5;
         broadcast();
     });
 
     socket.on('adminStartCountdown', () => {
-        if (gameState.status !== 'LOBBY') return;
+        if (gameState.status !== 'LOBBY' || Object.keys(gameState.tables).length === 0) return;
         gameState.status = 'COUNTDOWN';
         gameState.countdown = 5;
         broadcast();
