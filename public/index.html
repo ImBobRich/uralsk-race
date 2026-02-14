@@ -17,14 +17,28 @@
             background-size: cover; background-position: center;
         }
 
+        /* ОБНОВЛЕННЫЙ ОГНЕННЫЙ СТИЛЬ: Белые буквы + огненное свечение */
         .header-title { 
-            color: #ff2400; font-size: 5.5rem; text-align: center; margin-bottom: 40px; 
-            text-transform: uppercase; letter-spacing: 5px; animation: fire-flicker 1.5s infinite alternate;
+            color: #ffffff; /* Чисто белый для читаемости */
+            font-size: 5.5rem; 
+            text-align: center; 
+            margin-bottom: 40px; 
+            text-transform: uppercase; 
+            letter-spacing: 5px;
+            /* Золотистый контур для четкости */
+            -webkit-text-stroke: 2px #ffd700;
+            animation: fire-flicker 1.5s infinite alternate;
         }
 
         @keyframes fire-flicker {
-            0% { text-shadow: 0 0 10px #ff0000, 0 0 20px #ff4500, 0 0 30px #ff8c00; transform: scale(1); }
-            100% { text-shadow: 0 0 20px #ff4500, 0 0 40px #ff8c00, 0 0 60px #ff0000, 0 -10px 30px #ff4500; transform: scale(1.02); }
+            0% { 
+                text-shadow: 0 0 10px #ff0000, 0 0 20px #ff4500, 0 0 30px #ff8c00, 0 0 40px #ff0000; 
+                transform: scale(1);
+            }
+            100% { 
+                text-shadow: 0 0 20px #ff4500, 0 0 40px #ff8c00, 0 0 60px #ff0000, 0 -10px 30px #ff4500, 0 0 80px #ff0000;
+                transform: scale(1.02);
+            }
         }
 
         .main-row { display: flex; align-items: center; justify-content: center; gap: 80px; width: 90%; }
@@ -40,14 +54,13 @@
         .finish-checkered { 
             position: absolute; right: 60px; top: 0; bottom: 0; width: 50px; 
             background-color: #fff; background-image: linear-gradient(45deg, #000 25%, transparent 25%, transparent 75%, #000 75%, #000), linear-gradient(45deg, #000 25%, transparent 25%, transparent 75%, #000 75%, #000);
-            background-size: 20px 20px; background-position: 0 0, 10px 10px; border-left: 5px solid gold;
+            background-size: 20px 20px; border-left: 5px solid gold;
         }
         .horse { position: absolute; left: 0; display: flex; align-items: center; transition: left 0.2s linear; }
         @keyframes gallop { 0%, 100% { transform: translateY(0) scaleX(-1); } 50% { transform: translateY(-15px) scaleX(-1); } }
         .horse-img { font-size: 5rem; animation: gallop 0.5s infinite ease-in-out; }
         .horse-label { background: #fff; color: #000; padding: 5px 15px; border-radius: 8px; font-weight: bold; border: 3px solid #000; margin-left: -15px; font-size: 1.5rem; white-space: nowrap; }
 
-        /* ЦВЕТА ДОРОЖЕК */
         .lane:nth-child(1) { background: #f4b4fe; } .lane:nth-child(2) { background: #ffff00; }
         .lane:nth-child(3) { background: #8eff8e; } .lane:nth-child(4) { background: #4df4ff; }
         .lane:nth-child(5) { background: #ff8e8e; } .lane:nth-child(6) { background: #cedc00; } .lane:nth-child(7) { background: #ff9900; }
@@ -61,11 +74,7 @@
         .m-in:disabled { background: #2e4a2e; color: #ccc; }
         .m-btn { width: 100%; padding: 20px; background: gold; font-weight: bold; font-size: 1.8rem; border-radius: 15px; border: none; color: #000; cursor: pointer; }
 
-        /* СЛОЙ БЛОКИРОВКИ НАЖАТИЙ */
-        #lock-overlay {
-            display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(0,0,0,0); z-index: 999; touch-action: none;
-        }
+        #lock-overlay { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0); z-index: 999; touch-action: none; }
 
         #cnt { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 18rem; color: gold; z-index: 100; display: none; text-shadow: 0 0 40px black; }
         #victory-screen { background: rgba(0,0,0,0.95); z-index: 9999; }
@@ -157,7 +166,6 @@
         function renderTableButtons(num) {
             const grid = document.getElementById('table-selection');
             if (!grid) return;
-            // Перерисовываем только если количество изменилось
             if (grid.children.length !== num) {
                 grid.innerHTML = '';
                 for(let i=1; i<=num; i++) {
@@ -208,24 +216,20 @@
 
         socket.on('updateState', (state) => {
             lastState = state;
-            
             if (isAdmin) {
                 document.getElementById('adm-count').value = state.totalTables;
                 document.getElementById('adm-stats').innerHTML = Object.values(state.tables).map(t => `Стол ${t.id}: ${t.name}`).join('<br>');
             }
-
             if (!isScreen && !isAdmin) {
                 renderTableButtons(state.totalTables);
                 updateNameInput(state);
             }
-
             if (state.status === 'FINISHED') {
                 document.getElementById('victory-screen').style.display = 'flex';
                 document.getElementById('lock-overlay').style.display = 'none';
                 document.getElementById('winner-text').innerText = state.winner;
                 return;
             }
-
             if (isScreen) {
                 if (state.status === 'LOBBY') {
                     document.getElementById('lobby').style.display = 'flex';
@@ -240,8 +244,6 @@
                     document.getElementById('cnt').style.display = (state.status === 'COUNTDOWN') ? 'block' : 'none';
                     document.getElementById('cnt').innerText = state.countdown;
                     const field = document.getElementById('race-field');
-                    
-                    // Очистка если гонка только началась
                     if (state.status === 'COUNTDOWN' && state.countdown === 5) field.innerHTML = '';
 
                     Object.values(state.tables).forEach(t => {
@@ -261,280 +263,14 @@
         });
 
         socket.on('gameRestarted', () => {
-            // Мягкая перезагрузка для мобилок без потери totalTables
             if (!isScreen && !isAdmin) {
                 document.getElementById('m-setup').style.display = 'block';
                 document.getElementById('m-race').style.display = 'none';
                 document.getElementById('lock-overlay').style.display = 'none';
                 selectedTable = null;
             }
-            if (isScreen) {
-                document.getElementById('race-field').innerHTML = '';
-            }
+            if (isScreen) document.getElementById('race-field').innerHTML = '';
         });
-    </script>
-</body>
-</html>!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>СОЛЛАЛЬ. Уральские скачки</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <style>
-        body { margin: 0; background: #000; font-family: 'Arial Black', sans-serif; color: white; overflow: hidden; }
-        
-        .page { display: none; width: 100vw; height: 100vh; position: fixed; top: 0; left: 0; box-sizing: border-box; }
-
-        /* ЛОББИ (ЭКРАН ТВ) */
-        #lobby { 
-            flex-direction: column; align-items: center; justify-content: center; 
-            background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), 
-                        url('https://images.unsplash.com/photo-1598902108854-10e335adac99?q=80&w=2070&auto=format&fit=crop');
-            background-size: cover; background-position: center;
-        }
-
-        /* ОГНЕННОЕ НАЗВАНИЕ */
-        .header-title { 
-            color: #ff2400; /* Ярко-красный базовый */
-            font-size: 5.5rem; 
-            text-align: center; 
-            margin-bottom: 40px; 
-            text-transform: uppercase;
-            letter-spacing: 5px;
-            animation: fire-flicker 1.5s infinite alternate;
-        }
-
-        @keyframes fire-flicker {
-            0% {
-                text-shadow: 0 0 10px #ff0000, 0 0 20px #ff4500, 0 0 30px #ff8c00;
-                transform: scale(1);
-            }
-            100% {
-                text-shadow: 0 0 20px #ff4500, 0 0 40px #ff8c00, 0 0 60px #ff0000, 0 -10px 30px #ff4500;
-                transform: scale(1.02);
-            }
-        }
-
-        .main-row { display: flex; align-items: center; justify-content: center; gap: 80px; width: 90%; }
-        .qr-wrap { background: white; padding: 20px; border-radius: 25px; border: 12px solid gold; box-shadow: 0 0 50px rgba(0,0,0,0.5); }
-        .plate { background: rgba(0,0,0,0.85); padding: 40px; border: 4px solid gold; border-radius: 30px; min-width: 450px; }
-        .plate h2 { color: gold; margin: 0 0 25px 0; font-size: 2.5rem; border-bottom: 3px solid gold; padding-bottom: 10px; }
-        .plate ol { font-size: 1.8rem; line-height: 1.6; margin: 0; padding-left: 35px; }
-        .plate li { margin-bottom: 20px; }
-
-        /* СТАДИОН */
-        #stadium { flex-direction: column; background: #1a3c15; }
-        .lane { flex: 1; position: relative; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; overflow: hidden; }
-        .finish-checkered { 
-            position: absolute; right: 60px; top: 0; bottom: 0; width: 50px; 
-            background-color: #fff;
-            background-image: linear-gradient(45deg, #000 25%, transparent 25%, transparent 75%, #000 75%, #000), 
-                              linear-gradient(45deg, #000 25%, transparent 25%, transparent 75%, #000 75%, #000);
-            background-size: 20px 20px; background-position: 0 0, 10px 10px; border-left: 5px solid gold;
-        }
-        .horse { position: absolute; left: 0; display: flex; align-items: center; transition: left 0.2s linear; }
-        @keyframes gallop { 0%, 100% { transform: translateY(0) scaleX(-1); } 50% { transform: translateY(-15px) scaleX(-1); } }
-        .horse-img { font-size: 5rem; animation: gallop 0.5s infinite ease-in-out; }
-        .horse-label { background: #fff; color: #000; padding: 5px 15px; border-radius: 8px; font-weight: bold; border: 3px solid #000; margin-left: -15px; font-size: 1.5rem; white-space: nowrap; }
-
-        .lane:nth-child(1) { background: #f4b4fe; } .lane:nth-child(2) { background: #ffff00; }
-        .lane:nth-child(3) { background: #8eff8e; } .lane:nth-child(4) { background: #4df4ff; }
-        .lane:nth-child(5) { background: #ff8e8e; } .lane:nth-child(6) { background: #cedc00; } .lane:nth-child(7) { background: #ff9900; }
-
-        /* МОБИЛКА */
-        #mobile { text-align: center; padding: 20px; background: #1b5e20; overflow-y: auto; }
-        .table-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 20px 0; }
-        .t-btn { padding: 18px 5px; background: #fff; color: #000; border-radius: 12px; font-weight: bold; border: 4px solid transparent; font-size: 1.4rem; cursor: pointer; }
-        .t-btn.active { border-color: gold; background: #ffd700; transform: scale(1.05); }
-        .m-in { width: 100%; padding: 16px; margin-bottom: 20px; font-size: 1.2rem; border-radius: 12px; border: none; box-sizing: border-box; text-align: center; }
-        .m-in:disabled { background: #2e4a2e; color: #999; border: 1px solid #ffffff33; }
-        .m-btn { width: 100%; padding: 20px; background: gold; font-weight: bold; font-size: 1.8rem; border-radius: 15px; border: none; color: #000; cursor: pointer; box-shadow: 0 5px 0 #b8860b; }
-
-        #cnt { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 18rem; color: gold; z-index: 100; display: none; text-shadow: 0 0 40px black; }
-        #victory-screen { background: rgba(0,0,0,0.95); z-index: 9999; }
-        #admin-screen { background: #222; padding: 30px; flex-direction: column; overflow-y: auto; text-align: left; }
-    </style>
-</head>
-<body>
-
-    <div id="lobby" class="page">
-        <div class="header-title">СОЛЛАЛЬ. УРАЛЬСКИЕ СКАЧКИ</div>
-        <div class="main-row">
-            <div class="qr-wrap"><div id="qrcode"></div></div>
-            <div class="plate">
-                <h2>РЕГИСТРАЦИЯ НА ИГРУ:</h2>
-                <ol>
-                    <li>Выбери номер стола</li>
-                    <li>Напиши имя команды<br><small>(только первый участник)</small></li>
-                    <li>Тряси телефон и выигрывай!</li>
-                </ol>
-            </div>
-        </div>
-        <div id="team-list" style="margin-top: 50px; display: flex; flex-wrap: wrap; gap: 15px; justify-content: center;"></div>
-    </div>
-
-    <div id="stadium" class="page">
-        <div id="race-field" style="height:100%; width:100%; display:flex; flex-direction:column;"></div>
-        <div id="cnt">5</div>
-    </div>
-
-    <div id="victory-screen" class="page" style="flex-direction:column; align-items:center; justify-content:center;">
-        <h1 style="color:gold; font-size:5rem; margin:0;">ФИНИШ!</h1>
-        <p style="font-size: 2rem;">ПОБЕДИТЕЛЬ:</p>
-        <div id="winner-text" style="font-size:6rem; margin:20px; text-shadow: 0 0 20px gold; color: white;"></div>
-        <button onclick="socket.emit('restart')" style="padding:20px 60px; font-size:2rem; background:gold; border:none; border-radius:15px; font-weight:bold; cursor:pointer;">ИГРАТЬ ЕЩЕ РАЗ</button>
-    </div>
-
-    <div id="mobile" class="page">
-        <div id="m-setup">
-            <h2 style="color:gold; font-size: 2.2rem; margin-top: 0;">РЕГИСТРАЦИЯ</h2>
-            <p style="font-size: 1.2rem;">Выберите номер вашего стола:</p>
-            <div id="table-selection" class="table-grid"></div>
-            <input type="text" id="m-name" class="m-in" placeholder="Название команды">
-            <button id="join-btn" onclick="join()" class="m-btn">ПОДКЛЮЧИТЬСЯ</button>
-        </div>
-        <div id="m-race" style="display:none;">
-            <h1 id="m-myname" style="color:gold; margin-bottom: 0;"></h1>
-            <div style="font-size:8rem; margin:20px 0;">🏇</div>
-            <p id="shake-status" style="font-size:1.8rem; font-weight:bold;">ТРЯСИ ТЕЛЕФОН БЫСТРЕЕ!</p>
-        </div>
-    </div>
-
-    <div id="admin-screen" class="page">
-        <h2 style="color:gold;">УПРАВЛЕНИЕ ИГРОЙ</h2>
-        <div style="background:#333; padding:20px; border-radius:15px; margin-bottom:20px;">
-            Количество столов: 
-            <input type="number" id="adm-count" value="7" style="width:70px; font-size:1.5rem; margin: 0 10px;">
-            <button onclick="socket.emit('adminSetTables', document.getElementById('adm-count').value)" style="padding:10px 20px; cursor:pointer;">ОК</button>
-        </div>
-        <button onclick="socket.emit('adminStartCountdown')" style="padding:30px; background:green; color:white; font-weight:bold; width:100%; font-size:2.5rem; border-radius:20px; border:none; cursor:pointer; box-shadow: 0 6px 0 #004d00;">СТАРТ ГОНКИ</button>
-        <div id="adm-stats" style="margin-top:30px; font-size:1.4rem; background: rgba(255,255,255,0.05); padding: 20px; border-radius: 10px;"></div>
-        <button onclick="socket.emit('restart')" style="margin-top:auto; background:red; color:white; padding:15px; border:none; border-radius:10px; cursor:pointer;">ПОЛНЫЙ СБРОС СИСТЕМЫ</button>
-    </div>
-
-    <script src="/socket.io/socket.io.js"></script>
-    <script>
-        const socket = io();
-        const urlParams = new URLSearchParams(window.location.search);
-        const isScreen = urlParams.has('screen');
-        const isAdmin = urlParams.has('admin');
-
-        let selectedTable = null;
-        let isWindowActive = true;
-        let currentTablesCount = 0;
-        let lastState = null;
-
-        window.onfocus = () => { isWindowActive = true; };
-        window.onblur = () => { isWindowActive = false; };
-
-        if (isScreen) {
-            document.getElementById('lobby').style.display = 'flex';
-            new QRCode(document.getElementById("qrcode"), { 
-                text: window.location.origin, 
-                width: 450, 
-                height: 450 
-            });
-        } else if (isAdmin) {
-            document.getElementById('admin-screen').style.display = 'flex';
-        } else {
-            document.getElementById('mobile').style.display = 'block';
-        }
-
-        function renderTableButtons(num) {
-            const grid = document.getElementById('table-selection');
-            if (!grid || currentTablesCount === num) return;
-            currentTablesCount = num;
-            grid.innerHTML = '';
-            for(let i=1; i<=num; i++) {
-                let b = document.createElement('div');
-                b.className = 't-btn'; b.innerText = i;
-                b.onclick = () => {
-                    document.querySelectorAll('.t-btn').forEach(el => el.classList.remove('active'));
-                    b.classList.add('active');
-                    selectedTable = i;
-                    updateNameInput(lastState);
-                };
-                grid.appendChild(b);
-            }
-        }
-
-        function updateNameInput(state) {
-            if (!state || isScreen || isAdmin) return;
-            const nameInput = document.getElementById('m-name');
-            if (selectedTable && state.tables[selectedTable]) {
-                nameInput.value = state.tables[selectedTable].name;
-                nameInput.disabled = true;
-            } else {
-                nameInput.disabled = false;
-            }
-        }
-
-        function join() {
-            const n = document.getElementById('m-name').value;
-            if(!selectedTable) return alert("Выберите номер стола!");
-            socket.emit('join', { tableId: selectedTable, teamName: n });
-            document.getElementById('m-setup').style.display = 'none';
-            document.getElementById('m-race').style.display = 'block';
-            document.getElementById('m-myname').innerText = n || "Стол " + selectedTable;
-            if (window.DeviceMotionEvent && DeviceMotionEvent.requestPermission) {
-                DeviceMotionEvent.requestPermission();
-            }
-            window.addEventListener('devicemotion', (e) => {
-                if (!isWindowActive) return;
-                let a = e.accelerationIncludingGravity;
-                if (Math.abs(a.x) + Math.abs(a.y) + Math.abs(a.z) > 25) {
-                    socket.emit('shake');
-                }
-            });
-        }
-
-        socket.on('updateState', (state) => {
-            lastState = state;
-            if (!isScreen && !isAdmin) {
-                renderTableButtons(state.totalTables);
-                updateNameInput(state);
-            }
-            if (state.status === 'FINISHED') {
-                document.getElementById('victory-screen').style.display = 'flex';
-                document.getElementById('winner-text').innerText = state.winner;
-                return;
-            }
-            if (isScreen) {
-                if (state.status === 'LOBBY') {
-                    document.getElementById('lobby').style.display = 'flex';
-                    document.getElementById('stadium').style.display = 'none';
-                    document.getElementById('victory-screen').style.display = 'none';
-                    document.getElementById('team-list').innerHTML = Object.values(state.tables)
-                        .map(t => `<div style="background:gold; color:black; padding:10px 25px; border-radius:10px; font-weight:bold; font-size:1.5rem; border:3px solid white;">${t.name}</div>`)
-                        .join('');
-                } else {
-                    document.getElementById('lobby').style.display = 'none';
-                    document.getElementById('stadium').style.display = 'flex';
-                    document.getElementById('cnt').style.display = (state.status === 'COUNTDOWN') ? 'block' : 'none';
-                    document.getElementById('cnt').innerText = state.countdown;
-                    const field = document.getElementById('race-field');
-                    Object.values(state.tables).forEach(t => {
-                        let h = document.getElementById('h-' + t.id);
-                        if (!h) {
-                            const lane = document.createElement('div');
-                            lane.className = 'lane';
-                            lane.innerHTML = `<div class="finish-checkered"></div><div id="h-${t.id}" class="horse"><div class="horse-img">🏇</div><div class="horse-label">${t.name}</div></div>`;
-                            field.appendChild(lane);
-                            h = document.getElementById('h-' + t.id);
-                        }
-                        h.style.left = (t.score * 0.88) + '%';
-                        h.querySelector('.horse-img').style.animationPlayState = (state.status === 'RACING') ? 'running' : 'paused';
-                    });
-                }
-            }
-            if (isAdmin) {
-                document.getElementById('adm-stats').innerHTML = "<b>КОМАНДЫ:</b><br>" + 
-                    Object.values(state.tables).map(t => `Стол ${t.id}: ${t.name} (${t.count} чел.)`).join('<br>');
-            }
-        });
-
-        socket.on('gameRestarted', () => location.reload());
     </script>
 </body>
 </html>
