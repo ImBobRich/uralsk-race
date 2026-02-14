@@ -4,43 +4,64 @@ const { Server } = require('socket.io');
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, { cors: { origin: "*" } });
+const io = new Server(server);
 
-app.use(express.static('public'));
+app.use(express.static(__dirname + '/public'));
 
-let players = {};
-let raceActive = true;
+// Состояние игры
+let gameState = {
+    tables: {}, // { tableId: { name: "Победители", score: 0, playersCount: 0 } }
+    active: true
+};
 
 io.on('connection', (socket) => {
-    socket.on('join', (data) => {
-        players[socket.id] = { id: socket.id, name: data.name, pos: 0 };
-        io.emit('updatePlayers', players);
+    // Игрок выбирает стол
+    socket.on('join', ({ tableId, teamName }) => {
+        socket.tableId = tableId;
+        
+        if (!gameState.tables[tableId]) {
+            // Если стола еще нет, создаем его (первый игрок — капитан)
+            gameState.tables[tableId] = {
+                name: teamName || `Стол №${tableId}`,
+                score: 0,
+                playersCount: 1
+            };
+        } else {
+            // Если стол есть, просто увеличиваем счетчик людей
+            gameState.tables[tableId].playersCount++;
+        }
+        
+        // Отправляем всем обновленные данные
+        io.emit('updatePlayers', gameState.tables);
     });
 
+    // Регистрация «тряски»
     socket.on('shake', () => {
-        if (raceActive && players[socket.id]) {
-            players[socket.id].pos += 0.25; // Скорость за один встрях
-            io.emit('updatePlayers', players);
+        if (!gameState.active || !socket.tableId) return;
+        
+        const table = gameState.tables[socket.tableId];
+        if (table && table.score < 100) {
+            // Каждая тряска добавляет прогресс. 
+            // Коэффициент 0.2 можно менять (чем больше людей, тем меньше число)
+            table.score += 0.25; 
+            
+            if (table.score >= 100) {
+                table.score = 100;
+                if (gameState.active) {
+                    gameState.active = false;
+                    io.emit('winner', { name: table.name });
+                }
+            }
+            io.emit('updatePlayers', gameState.tables);
         }
     });
 
-    socket.on('finish', (data) => {
-        raceActive = false;
-        io.emit('raceOver', data);
-    });
-
     socket.on('restart', () => {
-        raceActive = true;
-        for (let id in players) { players[id].pos = 0; }
-        io.emit('updatePlayers', players);
-        io.emit('gameRestarted'); // Этот сигнал заставит всех обновить экраны
-    });
-
-    socket.on('disconnect', () => {
-        delete players[socket.id];
-        io.emit('updatePlayers', players);
+        gameState.tables = {};
+        gameState.active = true;
+        io.emit('gameRestarted');
     });
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`Сервер запущен на порту ${PORT}`));
+server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
