@@ -11,35 +11,46 @@ app.use(express.static(__dirname + '/public'));
 let gameState = {
     status: 'LOBBY', 
     tables: {}, 
-    winner: null,
     countdown: 5
 };
 
 const sync = () => io.emit('updateState', gameState);
 
 io.on('connection', (socket) => {
+    // Регистрация участника
     socket.on('join', ({ tableId, teamName }) => {
-        socket.tableId = tableId;
+        if (!tableId) return;
+        socket.tableId = tableId; // Привязываем ID стола к этому конкретному соединению
+        
         if (!gameState.tables[tableId]) {
-            gameState.tables[tableId] = { id: tableId, name: teamName || `Стол ${tableId}`, score: 0 };
+            gameState.tables[tableId] = { 
+                id: tableId, 
+                name: teamName || `Стол ${tableId}`, 
+                score: 0 
+            };
         }
+        console.log(`Подключился: ${gameState.tables[tableId].name}`);
         sync();
     });
 
+    // Обработка тряски
     socket.on('shake', () => {
         if (gameState.status !== 'RACING' || !socket.tableId) return;
+        
         const table = gameState.tables[socket.tableId];
         if (table && table.score < 100) {
-            table.score += 0.12; 
+            table.score += 0.2; // Шаг прогресса
+            
             if (table.score >= 100) {
                 table.score = 100;
                 gameState.status = 'FINISHED';
-                gameState.winner = table.name;
                 io.emit('winner', { name: table.name });
+                sync();
             }
         }
     });
 
+    // Запуск отсчета (только от админа)
     socket.on('adminStartCountdown', () => {
         if (gameState.status !== 'LOBBY') return;
         gameState.status = 'COUNTDOWN';
@@ -51,20 +62,23 @@ io.on('connection', (socket) => {
             if (gameState.countdown <= 0) {
                 clearInterval(timer);
                 gameState.status = 'RACING';
-                const heartBeat = setInterval(() => {
+                
+                // Интенсивная синхронизация во время гонки для исключения фризов
+                const raceInterval = setInterval(() => {
                     sync();
-                    if (gameState.status !== 'RACING') clearInterval(heartBeat);
-                }, 60);
+                    if (gameState.status !== 'RACING') clearInterval(raceInterval);
+                }, 50);
             }
             sync();
         }, 1000);
     });
 
     socket.on('restart', () => {
-        gameState = { status: 'LOBBY', tables: {}, winner: null, countdown: 5 };
+        gameState = { status: 'LOBBY', tables: {}, countdown: 5 };
         io.emit('gameRestarted');
         sync();
     });
 });
 
-server.listen(3000, () => console.log('Server started'));
+const PORT = 3000;
+server.listen(PORT, () => console.log(`Работаем на порту ${PORT}`));
