@@ -8,12 +8,13 @@ const io = new Server(server);
 
 app.use(express.static(__dirname + '/public'));
 
+// Храним состояние игры
 let gameState = {
     status: 'LOBBY',
     tables: {}, 
     countdown: 5,
     winner: null,
-    totalTables: 7 
+    totalTables: 7 // Это значение теперь сохраняется при сбросе
 };
 
 const broadcast = () => io.emit('updateState', gameState);
@@ -41,7 +42,7 @@ io.on('connection', (socket) => {
         if (gameState.status !== 'RACING' || !socket.tableId) return;
         let t = gameState.tables[socket.tableId];
         if (t && t.score < 100) {
-            t.score += 0.04; 
+            t.score += 0.08; 
             if (t.score >= 100) {
                 t.score = 100;
                 gameState.status = 'FINISHED';
@@ -51,6 +52,7 @@ io.on('connection', (socket) => {
         }
     });
 
+    // Админ меняет количество столов
     socket.on('adminSetTables', (num) => {
         gameState.totalTables = parseInt(num) || 7;
         broadcast();
@@ -71,8 +73,13 @@ io.on('connection', (socket) => {
         }, 1000);
     });
 
+    // СБРОС: очищаем столы и победителя, но ОСТАВЛЯЕМ totalTables
     socket.on('restart', () => {
-        gameState = { ...gameState, status: 'LOBBY', tables: {}, winner: null };
+        gameState.status = 'LOBBY';
+        gameState.tables = {};
+        gameState.winner = null;
+        gameState.countdown = 5;
+        // gameState.totalTables НЕ трогаем
         io.emit('gameRestarted');
         broadcast();
     });
@@ -80,5 +87,5 @@ io.on('connection', (socket) => {
 
 setInterval(() => { if (gameState.status === 'RACING') broadcast(); }, 50);
 
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`SERVER RUNNING ON PORT ${PORT}`));
+const PORT = 3000;
+server.listen(PORT, () => console.log(`SERVER OK: http://localhost:3000`));
