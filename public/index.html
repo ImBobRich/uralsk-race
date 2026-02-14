@@ -9,7 +9,7 @@
         body { margin: 0; background: #000; font-family: 'Arial Black', sans-serif; overflow: hidden; color: white; }
         #lobby, #stadium, #victory-screen, #mobile { display: none; width: 100vw; height: 100vh; position: fixed; }
 
-        /* ЛОББИ */
+        /* ЛОББИ - БЕЗ ИЗМЕНЕНИЙ */
         #lobby { flex-direction: column; align-items: center; justify-content: center; background: radial-gradient(circle, #4a0000 0%, #000 100%); }
         .qr-wrap { background: white; padding: 10px; border-radius: 10px; border: 4px solid gold; }
         #team-list { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
@@ -23,20 +23,28 @@
         .lane:nth-child(5) { background: #ff8e8e; }
         .finish-line { position: absolute; right: 60px; top: 0; bottom: 0; width: 40px; background: repeating-linear-gradient(0deg, #fff, #fff 15px, #000 15px, #000 30px); border-left: 4px solid gold; }
         
-        .horse { position: absolute; left: 0; display: flex; align-items: center; transition: left 0.1s linear; will-change: left; }
-        .horse-img { font-size: 5rem; transform: scaleX(-1); filter: drop-shadow(4px 4px 2px rgba(0,0,0,0.5)); }
+        .horse { position: absolute; left: 0; display: flex; align-items: center; transition: left 0.15s linear; will-change: left; }
+        
+        /* АНИМАЦИЯ СКАЧКИ */
+        @keyframes gallop {
+            0%, 100% { transform: translateY(0) scaleX(-1); }
+            50% { transform: translateY(-15px) scaleX(-1.05); }
+        }
+        .horse-img { font-size: 5rem; animation: gallop 0.4s infinite ease-in-out; filter: drop-shadow(4px 4px 2px rgba(0,0,0,0.5)); }
         .horse-label { background: white; color: black; padding: 4px 12px; border-radius: 6px; font-weight: bold; border: 2px solid #000; margin-left: -10px; font-size: 1.4rem; }
 
         #cnt { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; font-size: 18rem; color: gold; z-index: 5000; }
-        
-        /* ПОБЕДА */
         #victory-screen { flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.9); z-index: 9999; }
         #winner-text { font-size: 6rem; text-align: center; color: gold; text-shadow: 0 0 20px #fff; margin: 20px; }
 
-        /* МОБИЛКА */
-        #mobile { text-align: center; padding: 20px; background: #1b5e20; box-sizing: border-box; }
-        .m-in { width: 100%; padding: 18px; margin: 10px 0; font-size: 1.3rem; border-radius: 10px; border: none; }
-        .m-btn { width: 100%; padding: 20px; background: gold; font-weight: bold; font-size: 1.8rem; border-radius: 15px; border: none; cursor: pointer; }
+        /* МОБИЛКА - ИСПРАВЛЕНЫ ШРИФТЫ И ОТСТУПЫ */
+        #mobile { text-align: center; padding: 15px; background: #1b5e20; box-sizing: border-box; }
+        .m-in { 
+            width: 100%; padding: 12px; margin: 8px 0; 
+            font-size: 1.1rem; border-radius: 8px; border: none; 
+            box-sizing: border-box; /* Чтобы не вылазило за экран */
+        }
+        .m-btn { width: 100%; padding: 15px; background: gold; font-weight: bold; font-size: 1.5rem; border-radius: 12px; border: none; cursor: pointer; }
         
         #adm-btn { position: fixed; bottom: 10px; left: 10px; z-index: 8000; display: none; }
     </style>
@@ -55,22 +63,22 @@
     </div>
 
     <div id="victory-screen">
-        <h1 style="font-size: 4rem;">ПОБЕДИТЕЛЬ:</h1>
+        <h1 style="font-size: 3rem;">ПОБЕДИТЕЛЬ:</h1>
         <div id="winner-text"></div>
-        <button onclick="socket.emit('restart')" style="padding: 20px 50px; background: gold; font-weight: bold; font-size: 1.5rem; border-radius: 10px; cursor: pointer;">ИГРАТЬ СНОВА</button>
+        <button onclick="socket.emit('restart')" style="padding: 15px 40px; background: gold; font-weight: bold; font-size: 1.2rem; border-radius: 10px;">ЗАНОВО</button>
     </div>
 
     <div id="mobile">
         <div id="m-setup">
-            <h2 style="color: gold; font-size: 2rem;">ВХОД</h2>
-            <input type="number" id="m-table" class="m-in" placeholder="№ СТОЛА">
-            <input type="text" id="m-name" class="m-in" placeholder="КОМАНДА">
-            <button onclick="join()" class="m-btn">ГОТОВ</button>
+            <h2 style="color: gold; font-size: 1.8rem; margin: 10px 0;">ВХОД</h2>
+            <input type="number" id="m-table" class="m-in" placeholder="№ СТОЛА" enterkeyhint="next">
+            <input type="text" id="m-name" class="m-in" placeholder="НАЗВАНИЕ КОМАНДЫ" enterkeyhint="done">
+            <button id="join-btn" onclick="join()" class="m-btn">ГОТОВ</button>
         </div>
         <div id="m-race" style="display:none;">
             <h2 id="m-myname" style="color: gold;"></h2>
-            <div style="font-size: 6rem; margin: 40px 0;">🏇</div>
-            <p style="font-size: 1.5rem;">ТРЯСИ ТЕЛЕФОН!!!</p>
+            <div style="font-size: 5rem; margin: 20px 0;">🏇</div>
+            <p style="font-size: 1.3rem;">ТРЯСИ ТЕЛЕФОН!!!</p>
         </div>
     </div>
 
@@ -87,6 +95,14 @@
             new QRCode(document.getElementById("qrcode"), window.location.origin);
         } else {
             document.getElementById('mobile').style.display = 'block';
+            
+            // Логика "Таба" на мобилке
+            const inputTable = document.getElementById('m-table');
+            const inputName = document.getElementById('m-name');
+            const joinBtn = document.getElementById('join-btn');
+
+            inputTable.addEventListener('keydown', (e) => { if(e.key === 'Enter') inputName.focus(); });
+            inputName.addEventListener('keydown', (e) => { if(e.key === 'Enter') join(); });
         }
         if (isAdmin) document.getElementById('adm-btn').style.display = 'block';
 
@@ -106,13 +122,11 @@
         }
 
         socket.on('updateState', (state) => {
-            // ГЛАВНОЕ: Проверка финиша для всех
             if (state.status === 'FINISHED') {
                 document.getElementById('victory-screen').style.display = 'flex';
                 document.getElementById('winner-text').innerText = state.winner;
                 return;
             }
-
             if (!isScreen) return;
 
             if (state.status === 'LOBBY') {
@@ -127,7 +141,6 @@
                 document.getElementById('cnt').innerText = state.countdown;
 
                 const field = document.getElementById('race-field');
-                // Отрисовка или обновление лошадей
                 Object.values(state.tables).forEach(t => {
                     let h = document.getElementById('h-' + t.id);
                     if (!h) {
@@ -138,6 +151,8 @@
                         h = document.getElementById('h-' + t.id);
                     }
                     h.style.left = (t.score * 0.88) + '%';
+                    // Отключаем анимацию скачки, если гонка еще не началась
+                    h.querySelector('.horse-img').style.animationPlayState = (state.status === 'RACING') ? 'running' : 'paused';
                 });
             }
         });
