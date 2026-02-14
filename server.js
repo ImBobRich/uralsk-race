@@ -19,7 +19,6 @@ let gameState = {
 const broadcast = () => io.emit('updateState', gameState);
 
 io.on('connection', (socket) => {
-    // Сразу шлем текущее состояние новому игроку
     socket.emit('updateState', gameState);
 
     socket.on('join', ({ tableId, teamName }) => {
@@ -37,7 +36,7 @@ io.on('connection', (socket) => {
         if (gameState.status !== 'RACING' || !socket.tableId) return;
         let t = gameState.tables[socket.tableId];
         if (t && t.score < 100) {
-            t.score += 0.15; // Скорость (медленно)
+            t.score += 0.08; // ЕЩЕ МЕДЛЕННЕЕ ДЛЯ КАЙФА
             if (t.score >= 100) {
                 t.score = 100;
                 gameState.status = 'FINISHED';
@@ -75,4 +74,4 @@ io.on('connection', (socket) => {
 });
 
 setInterval(() => { if (gameState.status === 'RACING') broadcast(); }, 50);
-server.listen(3000, () => console.log('SERVER RUNNING'));
+server.listen(3000, () => console.log('SERVER OK'));
