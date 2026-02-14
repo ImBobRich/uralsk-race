@@ -14,7 +14,7 @@ let gameState = {
     countdown: 5,
     winner: null,
     totalTables: 7,
-    maxPlayersPerTable: 5 // Новая настройка лимита игроков
+    maxPlayersPerTable: 3 
 };
 
 const broadcast = () => io.emit('updateState', gameState);
@@ -24,14 +24,11 @@ io.on('connection', (socket) => {
 
     socket.on('join', ({ tableId, teamName }) => {
         if (!tableId) return;
-        
-        // Проверка лимита игроков
         const currentCount = gameState.tables[tableId] ? gameState.tables[tableId].count : 0;
         if (currentCount >= gameState.maxPlayersPerTable) {
             socket.emit('errorMsg', 'В этой команде уже максимум игроков!');
             return;
         }
-
         socket.tableId = tableId;
         if (!gameState.tables[tableId]) {
             gameState.tables[tableId] = { 
@@ -43,6 +40,7 @@ io.on('connection', (socket) => {
         } else {
             gameState.tables[tableId].count++;
         }
+        socket.emit('joinSuccess');
         broadcast();
     });
 
@@ -50,7 +48,7 @@ io.on('connection', (socket) => {
         if (gameState.status !== 'RACING' || !socket.tableId) return;
         let t = gameState.tables[socket.tableId];
         if (t && t.score < 100) {
-            t.score += 0.08; 
+            t.score += 0.15; // Баланс под 3 игрока
             if (t.score >= 100) {
                 t.score = 100;
                 gameState.status = 'FINISHED';
@@ -62,7 +60,7 @@ io.on('connection', (socket) => {
 
     socket.on('adminConfig', ({ totalTables, maxPlayers }) => {
         gameState.totalTables = parseInt(totalTables) || 7;
-        gameState.maxPlayersPerTable = parseInt(maxPlayers) || 5;
+        gameState.maxPlayersPerTable = parseInt(maxPlayers) || 3;
         broadcast();
     });
 
