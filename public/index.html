@@ -1,208 +1,105 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>УРАЛЬСКИЕ СКАЧКИ 2026</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <style>
-        body { margin: 0; background: #000; font-family: 'Arial Black', sans-serif; overflow: hidden; color: white; }
-        #lobby, #stadium, #victory-screen, #mobile, #admin-screen { display: none; width: 100vw; height: 100vh; position: fixed; }
+<style>
+    /* Стиль для лобби с фоном */
+    #lobby {
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: url('https://images.unsplash.com/photo-1553284965-83fd3e82fa5a?q=80&w=2071&auto=format&fit=crop') no-repeat center center;
+        background-size: cover;
+        position: relative;
+    }
 
-        /* ЛОББИ */
-        #lobby { flex-direction: column; align-items: center; justify-content: center; background: radial-gradient(circle, #4a0000 0%, #000 100%); }
-        .instruction { text-align: center; color: gold; font-size: 1.5rem; margin-bottom: 20px; line-height: 1.2; }
-        .qr-wrap { background: white; padding: 10px; border-radius: 10px; border: 4px solid gold; }
-        #team-list { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
-        .tag { background: gold; color: #000; padding: 10px 20px; border-radius: 5px; font-weight: bold; }
+    /* Темная подложка для читаемости */
+    #lobby::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0, 0, 0, 0.6);
+        z-index: 1;
+    }
 
-        /* СТАДИОН */
-        #stadium { flex-direction: column; background: #1a3c15; }
-        .lane { flex: 1; position: relative; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; }
-        .lane:nth-child(1) { background: #f4b4fe; } .lane:nth-child(2) { background: #ffff00; }
-        .lane:nth-child(3) { background: #8eff8e; } .lane:nth-child(4) { background: #4df4ff; }
-        .lane:nth-child(5) { background: #ff8e8e; } .lane:nth-child(6) { background: #cedc00; } .lane:nth-child(7) { background: #ff9900; }
+    #lobby > * { z-index: 2; } /* Выносим контент над подложкой */
 
-        /* ШАХМАТНЫЙ ФИНИШ */
-        .finish-line { 
-            position: absolute; right: 50px; top: 0; bottom: 0; width: 40px; 
-            background-color: #fff;
-            background-image: linear-gradient(45deg, #000 25%, transparent 25%, transparent 75%, #000 75%, #000), 
-                              linear-gradient(45deg, #000 25%, transparent 25%, transparent 75%, #000 75%, #000);
-            background-size: 20px 20px;
-            background-position: 0 0, 10px 10px;
-            border-left: 4px solid gold;
-        }
-        
-        .horse { position: absolute; left: 0; display: flex; align-items: center; transition: left 0.2s linear; }
-        @keyframes gallop { 0%, 100% { transform: translateY(0) scaleX(-1); } 50% { transform: translateY(-12px) scaleX(-1); } }
-        .horse-img { font-size: 4rem; animation: gallop 0.5s infinite ease-in-out; }
-        .horse-label { background: white; color: black; padding: 4px 10px; border-radius: 6px; font-weight: bold; border: 2px solid #000; margin-left: -10px; font-size: 1.2rem; }
+    .header-title {
+        color: gold;
+        font-size: 5rem;
+        text-shadow: 3px 3px 10px rgba(0,0,0,0.8);
+        margin-bottom: 40px;
+        text-align: center;
+    }
 
-        /* МОБИЛКА */
-        #mobile { text-align: center; padding: 15px; background: #1b5e20; overflow-y: auto; }
-        .table-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 15px 0; }
-        .t-btn { padding: 15px 5px; background: #fff; color: #000; border-radius: 8px; font-weight: bold; cursor: pointer; border: 3px solid transparent; }
-        .t-btn.active { border-color: gold; background: #ffd700; }
-        .m-in { width: 100%; padding: 12px; margin-bottom: 15px; font-size: 1.1rem; border-radius: 8px; border: none; box-sizing: border-box; }
-        .m-btn { width: 100%; padding: 15px; background: gold; font-weight: bold; font-size: 1.5rem; border-radius: 12px; border: none; }
+    .main-content {
+        display: flex;
+        align-items: center;
+        justify-content: space-around;
+        width: 90%;
+    }
 
-        /* АДМИНКА */
-        #admin-screen { background: #222; padding: 20px; display: none; flex-direction: column; }
-        .adm-card { background: #333; padding: 15px; border-radius: 10px; margin-bottom: 10px; }
-    </style>
-</head>
-<body>
+    /* ОГРОМНЫЙ QR-КОД */
+    .qr-container {
+        background: white;
+        padding: 30px;
+        border-radius: 20px;
+        border: 10px solid gold;
+        box-shadow: 0 0 50px rgba(255, 215, 0, 0.5);
+    }
+    
+    /* Инструкция в плашке справа */
+    .instruction-plate {
+        background: rgba(0, 0, 0, 0.8);
+        padding: 40px;
+        border-radius: 20px;
+        border: 3px solid gold;
+        max-width: 500px;
+        color: white;
+    }
 
-    <div id="lobby">
-        <div class="instruction">
-            РЕГИСТРАЦИЯ НА ИГРУ:<br>
-            1. Выбери номер стола<br>
-            2. Напиши имя команды (только первый игрок)<br>
-            3. Тряси телефон и выигрывай!
-        </div>
-        <div class="qr-wrap" id="qrcode"></div>
-        <div id="team-list"></div>
-    </div>
+    .instruction-plate h2 {
+        color: gold;
+        margin-top: 0;
+        font-size: 2.5rem;
+        border-bottom: 2px solid gold;
+        padding-bottom: 10px;
+    }
 
-    <div id="stadium">
-        <div id="race-field" style="height:100%; width:100%; display:flex; flex-direction:column;"></div>
-        <div id="cnt" style="position:fixed; top:40%; left:45%; font-size:15rem; color:gold; display:none; z-index:100;">5</div>
-    </div>
+    .instruction-plate ol {
+        font-size: 1.8rem;
+        padding-left: 30px;
+    }
 
-    <div id="victory-screen" style="display:none; flex-direction:column; align-items:center; justify-content:center; background:rgba(0,0,0,0.9); z-index:10000;">
-        <h1 style="color:gold; font-size:4rem;">ПОБЕДИТЕЛЬ!</h1>
-        <div id="winner-text" style="font-size:5rem; margin:20px;"></div>
-        <button onclick="socket.emit('restart')" style="padding:15px 40px; font-size:1.5rem; background:gold; border:none; border-radius:10px;">РЕСТАРТ</button>
-    </div>
+    .instruction-plate li { margin-bottom: 15px; }
+</style>
 
-    <div id="mobile">
-        <div id="m-setup">
-            <h2 style="color:gold; margin:10px 0;">РЕГИСТРАЦИЯ</h2>
-            <p style="margin:5px 0;">Выберите номер стола:</p>
-            <div id="table-selection" class="table-grid"></div>
-            <p style="margin:5px 0;">Имя команды (если первый):</p>
-            <input type="text" id="m-name" class="m-in" placeholder="Название">
-            <button onclick="join()" class="m-btn">ГОТОВ</button>
-        </div>
-        <div id="m-race" style="display:none;">
-            <h2 id="m-myname" style="color:gold;"></h2>
-            <div style="font-size:6rem; margin:20px 0;">🏇</div>
-            <p id="shake-status">ТРЯСИ ТЕЛЕФОН!</p>
+<div id="lobby">
+    <div class="header-title">СОЛЛАЛЬ. УРАЛЬСКИЕ СКАЧКИ</div>
+    
+    <div class="main-content">
+        <div class="qr-container" id="qrcode"></div>
+
+        <div class="instruction-plate">
+            <h2>РЕГИСТРАЦИЯ НА ИГРУ:</h2>
+            <ol>
+                <li>Выбери номер стола</li>
+                <li>Напиши имя команды <br><small>(только первый участник)</small></li>
+                <li>Тряси телефон и выигрывай!</li>
+            </ol>
         </div>
     </div>
 
-    <div id="admin-screen">
-        <h2>АДМИН-ПАНЕЛЬ</h2>
-        <div class="adm-card">
-            Всего столов: <input type="number" id="adm-table-count" value="7" style="width:50px;">
-            <button onclick="socket.emit('adminSetTables', document.getElementById('adm-table-count').value)">Применить</button>
-        </div>
-        <div class="adm-card">
-            <button onclick="socket.emit('adminStartCountdown')" style="padding:15px; background:green; color:white; font-weight:bold; width:100%;">СТАРТ ГОНКИ</button>
-        </div>
-        <div class="adm-card">
-            <h3>Участники:</h3>
-            <div id="adm-stats"></div>
-        </div>
-        <button onclick="socket.emit('restart')" style="background:red; color:white; padding:10px;">СБРОС ИГРЫ</button>
-    </div>
+    <div id="team-list"></div>
+</div>
 
-    <script src="/socket.io/socket.io.js"></script>
-    <script>
-        const socket = io();
-        const urlParams = new URLSearchParams(window.location.search);
-        const isScreen = urlParams.has('screen');
-        const isAdmin = urlParams.has('admin');
-
-        let selectedTable = null;
-        let isWindowActive = true;
-
-        // Следим за активностью окна
-        window.onfocus = () => { isWindowActive = true; if(document.getElementById('shake-status')) document.getElementById('shake-status').innerText = "ТРЯСИ ТЕЛЕФОН!"; };
-        window.onblur = () => { isWindowActive = false; if(document.getElementById('shake-status')) document.getElementById('shake-status').innerText = "ПАУЗА (окно закрыто)"; };
-
-        if (isScreen) {
-            document.getElementById('lobby').style.display = 'flex';
-            new QRCode(document.getElementById("qrcode"), window.location.origin);
-        } else if (isAdmin) {
-            document.getElementById('admin-screen').style.display = 'flex';
-        } else {
-            document.getElementById('mobile').style.display = 'block';
-        }
-
-        function join() {
-            const n = document.getElementById('m-name').value;
-            if(!selectedTable) return alert("Выбери стол!");
-            socket.emit('join', { tableId: selectedTable, teamName: n });
-            document.getElementById('m-setup').style.display = 'none';
-            document.getElementById('m-race').style.display = 'block';
-            document.getElementById('m-myname').innerText = n || "Стол "+selectedTable;
-            
-            if (window.DeviceMotionEvent && DeviceMotionEvent.requestPermission) DeviceMotionEvent.requestPermission();
-            window.addEventListener('devicemotion', (e) => {
-                if (!isWindowActive) return; // БЛОКИРОВКА ТРЯСКИ ЕСЛИ ОКНО СКРЫТО
-                let a = e.accelerationIncludingGravity;
-                if (Math.abs(a.x) + Math.abs(a.y) + Math.abs(a.z) > 25) socket.emit('shake');
-            });
-        }
-
-        socket.on('updateState', (state) => {
-            // Рендер кнопок выбора стола на мобилке (один раз)
-            const grid = document.getElementById('table-selection');
-            if (grid && grid.children.length === 0) {
-                for(let i=1; i<=state.totalTables; i++) {
-                    let b = document.createElement('div');
-                    b.className = 't-btn'; b.innerText = i;
-                    b.onclick = () => { 
-                        document.querySelectorAll('.t-btn').forEach(el=>el.classList.remove('active'));
-                        b.classList.add('active'); selectedTable = i; 
-                    };
-                    grid.appendChild(b);
-                }
-            }
-
-            if (state.status === 'FINISHED') {
-                document.getElementById('victory-screen').style.display = 'flex';
-                document.getElementById('winner-text').innerText = state.winner;
-                return;
-            }
-
-            if (isScreen) {
-                if (state.status === 'LOBBY') {
-                    document.getElementById('lobby').style.display = 'flex';
-                    document.getElementById('stadium').style.display = 'none';
-                    document.getElementById('victory-screen').style.display = 'none';
-                    document.getElementById('team-list').innerHTML = Object.values(state.tables).map(t => `<div class="tag">${t.name}</div>`).join('');
-                } else {
-                    document.getElementById('lobby').style.display = 'none';
-                    document.getElementById('stadium').style.display = 'flex';
-                    document.getElementById('cnt').style.display = (state.status === 'COUNTDOWN') ? 'block' : 'none';
-                    document.getElementById('cnt').innerText = state.countdown;
-
-                    const field = document.getElementById('race-field');
-                    Object.values(state.tables).forEach(t => {
-                        let h = document.getElementById('h-' + t.id);
-                        if (!h) {
-                            const lane = document.createElement('div');
-                            lane.className = 'lane';
-                            lane.innerHTML = `<div class="finish-line"></div><div id="h-${t.id}" class="horse"><div class="horse-img">🏇</div><div class="horse-label">${t.name}</div></div>`;
-                            field.appendChild(lane);
-                            h = document.getElementById('h-' + t.id);
-                        }
-                        h.style.left = (t.score * 0.88) + '%';
-                        h.querySelector('.horse-img').style.animationPlayState = (state.status === 'RACING') ? 'running' : 'paused';
-                    });
-                }
-            }
-
-            if (isAdmin) {
-                document.getElementById('adm-stats').innerHTML = Object.values(state.tables)
-                    .map(t => `<div><b>${t.name}</b> (Стол ${t.id}): ${t.count} чел.</div>`).join('');
-            }
+<script>
+    // В скрипте настройки QRCode измени размер на 400 или 500 для гигантского размера
+    if (isScreen) {
+        new QRCode(document.getElementById("qrcode"), {
+            text: window.location.origin,
+            width: 450, // ВОТ ЗДЕСЬ РАЗМЕР В 3 РАЗА БОЛЬШЕ
+            height: 450,
+            colorDark : "#000000",
+            colorLight : "#ffffff",
+            correctLevel : QRCode.CorrectLevel.H
         });
-
-        socket.on('gameRestarted', () => location.reload());
-    </script>
-</body>
-</html>
+    }
+</script>
