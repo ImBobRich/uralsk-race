@@ -3,254 +3,181 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>СОЛЛАЛЬ 2026. Уральские скачки</title>
+    <title>СОЛЛАЛЬ 2026</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         body { margin: 0; background: #000; font-family: 'Arial Black', sans-serif; color: white; overflow: hidden; touch-action: none; }
         .page { display: none; width: 100vw; height: 100vh; position: fixed; top: 0; left: 0; box-sizing: border-box; }
+        
+        /* ТВ СТИЛИ */
+        #lobby { flex-direction: column; align-items: center; justify-content: center; background: #000; }
+        .header-title { text-align: center; margin-bottom: 30px; }
+        .header-title h1 { font-size: 6rem; color: #fff; margin: 0; text-shadow: 0 0 20px gold; }
+        .header-title h2 { font-size: 3rem; color: gold; margin: 0; }
+        .qr-wrap { background: white; padding: 15px; border: 10px solid gold; border-radius: 20px; }
+        
+        #stadium { background: #1a3c15; flex-direction: column; }
+        .lane { flex: 1; border-bottom: 1px solid rgba(255,255,255,0.1); position: relative; display: flex; align-items: center; }
+        .horse { position: absolute; left: 0; transition: left 0.1s linear; display: flex; align-items: center; }
+        .horse-img { font-size: 5rem; transform: scaleX(-1); }
+        .horse-label { background: #fff; color: #000; padding: 5px 15px; border-radius: 10px; font-weight: bold; font-size: 1.5rem; }
 
-        /* ТВ ЛОББИ */
-        #lobby { 
-            flex-direction: column; align-items: center; justify-content: center; 
-            background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), 
-                        url('https://images.unsplash.com/photo-1598902108854-10e335adac99?q=80&w=2070&auto=format&fit=crop');
-            background-size: cover; background-position: center;
-        }
-
-        .header-title { 
-            text-align: center; margin-bottom: 40px; text-transform: uppercase; letter-spacing: 5px;
-            animation: fire-flicker 1.5s infinite alternate;
-        }
-        .header-title div:first-child { font-size: 6rem; color: #fff; -webkit-text-stroke: 2px gold; }
-        .header-title div:last-child { font-size: 3.5rem; color: gold; }
-
-        @keyframes fire-flicker {
-            0% { text-shadow: 0 0 15px #ff0000; transform: scale(1); }
-            100% { text-shadow: 0 0 35px #ff4500; transform: scale(1.02); }
-        }
-
-        .main-row { display: flex; align-items: center; justify-content: center; gap: 80px; width: 90%; }
-        .qr-wrap { background: white; padding: 20px; border-radius: 25px; border: 12px solid gold; }
-        .plate { background: rgba(0,0,0,0.85); padding: 40px; border: 4px solid gold; border-radius: 30px; min-width: 450px; }
-
-        /* СТАДИОН И СТАТИСТИКА */
-        #stadium { flex-direction: column; background: #1a3c15; }
-        .lane { flex: 1; position: relative; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; }
-        .horse { position: absolute; left: 0; display: flex; align-items: center; transition: left 0.2s linear; }
-        .horse-img { font-size: 5rem; animation: gallop 0.5s infinite ease-in-out; }
-        @keyframes gallop { 0%, 100% { transform: translateY(0) scaleX(-1); } 50% { transform: translateY(-15px) scaleX(-1); } }
-        .horse-label { background: #fff; color: #000; padding: 5px 15px; border-radius: 8px; font-weight: bold; font-size: 1.5rem; border: 3px solid #000; }
-
-        #stats-bar { height: 120px; background: #000; border-top: 5px solid gold; display: flex; align-items: center; justify-content: space-around; padding: 0 10px; }
-        .stat-item { background: #222; padding: 10px 20px; border-radius: 10px; border: 1px solid gold; min-width: 150px; text-align: center; }
-        .stat-name { color: gold; font-size: 1.2rem; margin-bottom: 5px; white-space: nowrap; overflow: hidden; }
-        .stat-prog { font-size: 1.5rem; color: #fff; }
+        #stats-bar { height: 100px; background: #000; border-top: 5px solid gold; display: flex; justify-content: space-around; align-items: center; }
+        .stat-item { background: #222; padding: 10px; border-radius: 8px; border: 1px solid gold; text-align: center; min-width: 120px; }
 
         /* МОБИЛКА */
-        #mobile { text-align: center; padding: 20px; background: #1b5e20; }
+        #mobile { background: #1b5e20; text-align: center; padding: 20px; }
         .table-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin: 20px 0; }
-        .t-btn { padding: 25px 10px; background: #fff; color: #000; border-radius: 12px; font-weight: bold; font-size: 1.5rem; border: 4px solid transparent; }
+        .t-btn { padding: 30px 10px; background: #fff; color: #000; border-radius: 15px; font-weight: bold; font-size: 1.4rem; border: 5px solid transparent; }
         .t-btn.active { border-color: gold; background: #ffeb3b; }
-        .t-btn.full { background: #444; color: #888; pointer-events: none; }
-        .m-in { width: 100%; padding: 18px; margin-bottom: 20px; font-size: 1.2rem; border-radius: 12px; border: none; text-align: center; }
-        .m-btn { width: 100%; padding: 22px; background: gold; font-weight: bold; font-size: 1.8rem; border-radius: 15px; border: none; }
+        .t-btn.full { background: #444; color: #777; pointer-events: none; opacity: 0.5; }
+        .m-in { width: 100%; padding: 20px; margin-bottom: 20px; font-size: 1.3rem; border-radius: 15px; border: none; text-align: center; box-sizing: border-box; }
+        .m-btn { width: 100%; padding: 25px; background: gold; font-weight: bold; font-size: 2rem; border-radius: 20px; border: none; color: #000; }
 
-        #lock-overlay { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 999; }
-        #victory-screen { background: rgba(0,0,0,0.95); z-index: 9999; text-align: center; flex-direction: column; align-items: center; justify-content: center; }
-        #admin-screen { background: #222; padding: 30px; flex-direction: column; }
+        /* ЭКРАН ТРЯСИ */
+        #shake-screen { flex-direction: column; align-items: center; justify-content: center; }
+        #shake-screen h1 { font-size: 6rem; color: gold; margin: 20px 0; animation: pulse 0.5s infinite alternate; }
+        @keyframes pulse { from { transform: scale(1); } to { transform: scale(1.1); } }
+
+        /* ПОБЕДА */
+        #victory-screen { background: rgba(0,0,0,0.9); z-index: 100; flex-direction: column; align-items: center; justify-content: center; }
+        canvas { position: absolute; top: 0; left: 0; pointer-events: none; }
     </style>
 </head>
 <body>
 
-    <div id="lock-overlay"></div>
+    <audio id="fanfare" src="https://actions.google.com/sounds/v1/human_voices/applause_clapping_and_cheering.ogg"></audio>
 
     <div id="lobby" class="page">
         <div class="header-title">
-            <div>СОЛЛАЛЬ 2026</div>
-            <div>УРАЛЬСКИЕ СКАЧКИ</div>
+            <h1>СОЛЛАЛЬ 2026</h1>
+            <h2>УРАЛЬСКИЕ СКАЧКИ</h2>
         </div>
-        <div class="main-row">
-            <div class="qr-wrap"><div id="qrcode"></div></div>
-            <div class="plate">
-                <h2 style="color:gold;">РЕГИСТРАЦИЯ:</h2>
-                <ol style="font-size: 1.8rem; line-height: 2; padding-left: 25px;">
-                    <li>Сканируй QR-код</li>
-                    <li>Выбери номер стола</li>
-                    <li>Введи название команды</li>
-                    <li>Тряси телефон по команде!</li>
-                </ol>
-            </div>
-        </div>
-        <div id="team-list" style="margin-top: 30px; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;"></div>
+        <div class="qr-wrap"><div id="qrcode"></div></div>
+        <div id="team-list" style="margin-top: 30px; display: flex; gap: 15px;"></div>
     </div>
 
     <div id="stadium" class="page">
         <div id="race-field" style="flex: 1; display: flex; flex-direction: column;"></div>
-        <div id="stats-bar"></div> <div id="cnt" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 18rem; color: gold; display: none;">5</div>
+        <div id="stats-bar"></div>
+        <div id="cnt" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 20rem; color: gold; display: none;">5</div>
     </div>
 
     <div id="victory-screen" class="page">
-        <h1 style="color:red; font-size:10rem; margin:0; text-shadow: 0 0 30px red;">ФИНИШ</h1>
-        <div id="winner-text-line" style="font-size:4rem; margin-top: 20px; color: white;">
-            Победила команда <span id="winner-name-val" style="color: gold; border-bottom: 5px solid gold;"></span>
-        </div>
-        <div id="admin-restart-area" style="margin-top: 50px;"></div>
+        <canvas id="fireworks"></canvas>
+        <h1 style="color:red; font-size:12rem; margin:0; z-index: 101;">ФИНИШ</h1>
+        <h2 style="font-size:4rem; z-index: 101;">Победила команда: <span id="win-name" style="color:gold;"></span></h2>
+        <div id="admin-reset-btn" style="z-index: 102; margin-top: 50px;"></div>
     </div>
 
     <div id="mobile" class="page">
         <div id="m-setup">
-            <h2 style="color:gold; font-size: 2.2rem;">ВХОД В ИГРУ</h2>
+            <h2 style="color:gold; font-size: 2.5rem;">ВЫБЕРИ СТОЛ</h2>
             <div id="table-selection" class="table-grid"></div>
             <input type="text" id="m-name" class="m-in" placeholder="Название команды">
-            <button id="join-btn" onclick="join()" class="m-btn">ПОДКЛЮЧИТЬСЯ</button>
+            <button onclick="join()" class="m-btn">ПОДКЛЮЧИТЬСЯ</button>
         </div>
-        <div id="m-race" style="display:none;">
-            <h1 id="m-myname" style="color:gold;"></h1>
-            <div style="font-size:10rem; margin:30px 0;">🏇</div>
-            <p style="font-size:1.8rem; font-weight:bold;">ЖДИ СТАРТА И ТРЯСИ!</p>
+        <div id="shake-screen" class="page">
+            <h1 id="m-status-text">ТРЯСИ!</h1>
+            <div style="font-size: 12rem;">🏇</div>
+            <p style="color: gold; font-size: 1.5rem;">ЭКРАН ЗАБЛОКИРОВАН</p>
         </div>
     </div>
 
-    <div id="admin-screen" class="page">
-        <h2 style="color:gold;">АДМИН-ПАНЕЛЬ</h2>
-        <div style="background: #333; padding: 20px; border-radius: 15px; margin-bottom: 20px;">
-            Столов: <input type="number" id="adm-count" value="7" style="width:50px;"> 
-            Макс. игроков: <input type="number" id="adm-max" value="3" style="width:50px;">
-            <button onclick="applyConfig()">ОК</button>
-        </div>
-        <button id="start-btn" onclick="socket.emit('adminStartCountdown')" style="padding:30px; width:100%; font-size:2rem; background: green; color:white; border:none; border-radius:15px;" disabled>СТАРТ</button>
-        <div id="adm-stats" style="margin-top:20px;"></div>
-        <button onclick="socket.emit('restart')" style="margin-top:auto; color:red; background:none; border:1px solid red; padding:10px;">СБРОС ИГРЫ</button>
+    <div id="admin-screen" class="page" style="background: #222; padding: 20px;">
+        <h2>АДМИН</h2>
+        Столов: <input type="number" id="adm-c" value="7" style="width:50px; font-size: 1.5rem;">
+        Лимит: <input type="number" id="adm-l" value="3" style="width:50px; font-size: 1.5rem;">
+        <button onclick="socket.emit('adminConfig', {totalTables: document.getElementById('adm-c').value, maxPlayers: document.getElementById('adm-l').value})">OK</button>
+        <hr>
+        <button id="start-btn" onclick="socket.emit('adminStartCountdown')" style="width:100%; padding:40px; background: green; color:white; font-size:2rem; border-radius:20px;" disabled>СТАРТ</button>
+        <button onclick="socket.emit('restart')" style="margin-top: 30px; width:100%; padding:10px; background: red; color:white;">СБРОС ВСЕГО</button>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
-        const urlParams = new URLSearchParams(window.location.search);
-        const isScreen = urlParams.has('screen');
-        const isAdmin = urlParams.has('admin');
+        const params = new URLSearchParams(window.location.search);
+        const isScreen = params.has('screen');
+        const isAdmin = params.has('admin');
 
-        let selectedTable = null;
-        let isJoined = false;
-
-        if (isScreen) {
+        if(isScreen) {
             document.getElementById('lobby').style.display = 'flex';
             new QRCode(document.getElementById("qrcode"), { text: window.location.origin, width: 400, height: 400 });
-        } else if (isAdmin) {
+        } else if(isAdmin) {
             document.getElementById('admin-screen').style.display = 'flex';
-            document.getElementById('admin-restart-area').innerHTML = `<button onclick="socket.emit('restart')" style="padding:20px 50px; font-size:2rem; background:gold; color:black; border:none; border-radius:15px; font-weight:bold; cursor:pointer;">ЗАНОВО</button>`;
+            document.getElementById('admin-reset-btn').innerHTML = `<button onclick="socket.emit('restart')" style="padding:20px 50px; font-size:2rem; background:gold; border-radius:15px; font-weight:bold; cursor:pointer;">ЗАНОВО</button>`;
         } else {
             document.getElementById('mobile').style.display = 'block';
         }
 
-        function applyConfig() {
-            socket.emit('adminConfig', {
-                totalTables: document.getElementById('adm-count').value,
-                maxPlayers: document.getElementById('adm-max').value
-            });
-        }
-
-        function renderTableButtons(state) {
-            const grid = document.getElementById('table-selection');
-            if (!grid || isJoined) return;
-            grid.innerHTML = '';
-            for(let i=1; i<=state.totalTables; i++) {
-                let tData = state.tables[i];
-                let isFull = tData && tData.count >= state.maxPlayersPerTable;
-                let b = document.createElement('div');
-                b.className = 't-btn' + (isFull ? ' full' : '');
-                b.innerText = `СТОЛ ${i}`;
-                if (!isFull) {
-                    b.onclick = () => {
-                        document.querySelectorAll('.t-btn').forEach(el => el.classList.remove('active'));
-                        b.classList.add('active');
-                        selectedTable = i;
-                        if (tData) {
-                            document.getElementById('m-name').value = tData.name;
-                            document.getElementById('m-name').disabled = true;
-                        } else {
-                            document.getElementById('m-name').value = '';
-                            document.getElementById('m-name').disabled = false;
-                        }
-                    };
-                }
-                grid.appendChild(b);
-            }
-        }
-
+        let selectedTable = null;
         function join() {
             if(!selectedTable) return alert("Выбери стол!");
-            const n = document.getElementById('m-name').value;
-            socket.emit('join', { tableId: selectedTable, teamName: n });
+            socket.emit('join', { tableId: selectedTable, teamName: document.getElementById('m-name').value });
         }
 
         socket.on('joinSuccess', () => {
-            isJoined = true;
             document.getElementById('m-setup').style.display = 'none';
-            document.getElementById('m-race').style.display = 'block';
-            document.getElementById('lock-overlay').style.display = 'block';
+            document.getElementById('shake-screen').style.display = 'flex';
         });
 
-        socket.on('errorMsg', (msg) => alert(msg));
-
         socket.on('updateState', (state) => {
-            const hasPlayers = Object.keys(state.tables).length > 0;
-
-            if (isAdmin) {
-                document.getElementById('start-btn').disabled = !hasPlayers || state.status !== 'LOBBY';
-                document.getElementById('adm-stats').innerHTML = Object.values(state.tables)
-                    .map(t => `Стол ${t.id}: ${t.name} (${t.count}/${state.maxPlayersPerTable} чел.)`).join('<br>');
+            if(isAdmin) {
+                document.getElementById('start-btn').disabled = Object.keys(state.tables).length === 0 || state.status !== 'LOBBY';
             }
-
-            if (!isScreen && !isAdmin) {
-                renderTableButtons(state);
-                if (isJoined && state.tables[selectedTable]) {
-                    document.getElementById('m-myname').innerText = state.tables[selectedTable].name;
+            if(!isScreen && !isAdmin) {
+                const grid = document.getElementById('table-selection');
+                if(grid.children.length !== state.totalTables) {
+                    grid.innerHTML = '';
+                    for(let i=1; i<=state.totalTables; i++) {
+                        let b = document.createElement('div');
+                        b.className = 't-btn' + (state.tables[i]?.count >= state.maxPlayersPerTable ? ' full' : '');
+                        b.innerText = `СТОЛ ${i}`;
+                        b.onclick = () => {
+                            document.querySelectorAll('.t-btn').forEach(el => el.classList.remove('active'));
+                            b.classList.add('active');
+                            selectedTable = i;
+                            document.getElementById('m-name').value = state.tables[i]?.name || '';
+                        };
+                        grid.appendChild(b);
+                    }
                 }
             }
-
-            if (state.status === 'FINISHED') {
-                document.getElementById('victory-screen').style.display = 'flex';
-                document.getElementById('winner-name-val').innerText = state.winner;
-                return;
-            }
-
-            if (isScreen) {
-                if (state.status === 'LOBBY') {
+            if(isScreen) {
+                if(state.status === 'LOBBY') {
                     document.getElementById('lobby').style.display = 'flex';
                     document.getElementById('stadium').style.display = 'none';
                     document.getElementById('victory-screen').style.display = 'none';
-                    document.getElementById('team-list').innerHTML = Object.values(state.tables)
-                        .map(t => `<div style="background:gold; color:black; padding:10px 20px; border-radius:10px; font-weight:bold;">${t.name} (👥${t.count})</div>`)
-                        .join('');
+                } else if(state.status === 'FINISHED') {
+                    document.getElementById('victory-screen').style.display = 'flex';
+                    document.getElementById('win-name').innerText = state.winner;
+                    document.getElementById('fanfare').play();
+                    startFireworks();
                 } else {
                     document.getElementById('lobby').style.display = 'none';
                     document.getElementById('stadium').style.display = 'flex';
-                    document.getElementById('cnt').style.display = (state.status === 'COUNTDOWN') ? 'block' : 'none';
+                    document.getElementById('cnt').style.display = state.status === 'COUNTDOWN' ? 'block' : 'none';
                     document.getElementById('cnt').innerText = state.countdown;
                     
                     const field = document.getElementById('race-field');
                     const stats = document.getElementById('stats-bar');
+                    if(state.status === 'COUNTDOWN' && state.countdown === 5) { field.innerHTML = ''; stats.innerHTML = ''; }
                     
-                    if (state.status === 'COUNTDOWN' && state.countdown === 5) {
-                        field.innerHTML = '';
-                        stats.innerHTML = '';
-                    }
-
                     Object.values(state.tables).forEach(t => {
-                        let h = document.getElementById('h-' + t.id);
-                        if (!h) {
+                        let h = document.getElementById('h-'+t.id);
+                        if(!h) {
                             field.insertAdjacentHTML('beforeend', `<div class="lane"><div id="h-${t.id}" class="horse"><div class="horse-img">🏇</div><div class="horse-label">${t.name}</div></div></div>`);
-                            h = document.getElementById('h-' + t.id);
+                            h = document.getElementById('h-'+t.id);
                         }
-                        h.style.left = (t.score * 0.88) + '%';
-
-                        let s = document.getElementById('s-' + t.id);
-                        if (!s) {
-                            stats.insertAdjacentHTML('beforeend', `<div id="s-${t.id}" class="stat-item"><div class="stat-name">${t.name}</div><div class="stat-prog">👥 ${t.count} | <span class="perc">0</span>%</div></div>`);
-                            s = document.getElementById('s-' + t.id);
+                        h.style.left = (t.score * 0.85) + '%';
+                        
+                        let s = document.getElementById('s-'+t.id);
+                        if(!s) {
+                            stats.insertAdjacentHTML('beforeend', `<div id="s-${t.id}" class="stat-item"><b>${t.name}</b><br>${Math.floor(t.score)}%</div>`);
+                        } else {
+                            s.innerHTML = `<b>${t.name}</b><br>${Math.floor(t.score)}%`;
                         }
-                        s.querySelector('.perc').innerText = Math.floor(t.score);
                     });
                 }
             }
@@ -258,13 +185,37 @@
 
         socket.on('gameRestarted', () => location.reload());
 
-        if (!isScreen && !isAdmin) {
-            window.addEventListener('devicemotion', (e) => {
-                let a = e.accelerationIncludingGravity;
-                if (Math.abs(a.x) + Math.abs(a.y) + Math.abs(a.z) > 25) {
-                    socket.emit('shake');
-                }
-            });
+        window.addEventListener('devicemotion', (e) => {
+            let a = e.accelerationIncludingGravity;
+            if(Math.abs(a.x)+Math.abs(a.y)+Math.abs(a.z) > 25) socket.emit('shake');
+        });
+
+        // ФЕЙЕРВЕРК
+        function startFireworks() {
+            const canvas = document.getElementById('fireworks');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            let particles = [];
+            function createPart() {
+                for(let i=0; i<10; i++) particles.push({
+                    x: Math.random()*canvas.width, y: canvas.height,
+                    vx: Math.random()*4-2, vy: Math.random()*-10-5,
+                    c: `hsl(${Math.random()*360}, 100%, 50%)`, r: 3
+                });
+            }
+            setInterval(createPart, 100);
+            function loop() {
+                ctx.clearRect(0,0,canvas.width, canvas.height);
+                particles.forEach((p, i) => {
+                    p.x += p.vx; p.y += p.vy; p.vy += 0.1;
+                    ctx.fillStyle = p.c;
+                    ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctx.fill();
+                    if(p.y > canvas.height) particles.splice(i, 1);
+                });
+                requestAnimationFrame(loop);
+            }
+            loop();
         }
     </script>
 </body>
