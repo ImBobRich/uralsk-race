@@ -11,7 +11,8 @@ app.use(express.static(__dirname + '/public'));
 let gameState = {
     status: 'LOBBY', 
     tables: {}, 
-    winner: null
+    winner: null,
+    countdown: 5
 };
 
 io.on('connection', (socket) => {
@@ -19,7 +20,6 @@ io.on('connection', (socket) => {
 
     socket.on('join', ({ tableId, teamName }) => {
         socket.tableId = tableId;
-        // Важно: создаем запись, если её нет, и НЕ перезаписываем существующую
         if (!gameState.tables[tableId]) {
             gameState.tables[tableId] = { 
                 id: tableId, 
@@ -35,8 +35,8 @@ io.on('connection', (socket) => {
         
         const table = gameState.tables[socket.tableId];
         if (table && table.score < 100) {
-            // Скорость замедлена в 5 раз (было 0.4 -> стало 0.08)
-            table.score += 0.08; 
+            // Очень медленный прирост для долгой гонки
+            table.score += 0.07; 
             
             if (table.score >= 100) {
                 table.score = 100;
@@ -50,26 +50,27 @@ io.on('connection', (socket) => {
 
     socket.on('adminStartCountdown', () => {
         if (gameState.status !== 'LOBBY') return;
+        
         gameState.status = 'COUNTDOWN';
+        gameState.countdown = 5;
         io.emit('updateState', gameState);
 
-        let timer = 5;
         const interval = setInterval(() => {
-            timer--;
-            if (timer <= 0) {
+            gameState.countdown--;
+            if (gameState.countdown <= 0) {
                 clearInterval(interval);
                 gameState.status = 'RACING';
-                io.emit('updateState', gameState);
             }
+            io.emit('updateState', gameState);
         }, 1000);
     });
 
     socket.on('restart', () => {
-        gameState = { status: 'LOBBY', tables: {}, winner: null };
+        gameState = { status: 'LOBBY', tables: {}, winner: null, countdown: 5 };
         io.emit('gameRestarted');
         io.emit('updateState', gameState);
     });
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`Server started on 3000`));
+server.listen(PORT, () => console.log(`Server live on 3000`));
