@@ -15,20 +15,13 @@ let gameState = {
     countdown: 5
 };
 
-// Функция принудительного обновления всех клиентов
 const sync = () => io.emit('updateState', gameState);
 
 io.on('connection', (socket) => {
-    const isAdmin = socket.handshake.query.admin === 'true';
-
     socket.on('join', ({ tableId, teamName }) => {
         socket.tableId = tableId;
         if (!gameState.tables[tableId]) {
-            gameState.tables[tableId] = { 
-                id: tableId, 
-                name: teamName || `Стол №${tableId}`, 
-                score: 0 
-            };
+            gameState.tables[tableId] = { id: tableId, name: teamName || `Стол ${tableId}`, score: 0 };
         }
         sync();
     });
@@ -37,7 +30,7 @@ io.on('connection', (socket) => {
         if (gameState.status !== 'RACING' || !socket.tableId) return;
         const table = gameState.tables[socket.tableId];
         if (table && table.score < 100) {
-            table.score += 0.07; // Замедленная скорость для длинной дистанции
+            table.score += 0.1; // Оптимальная скорость
             if (table.score >= 100) {
                 table.score = 100;
                 gameState.status = 'FINISHED';
@@ -53,18 +46,16 @@ io.on('connection', (socket) => {
         gameState.countdown = 5;
         sync();
 
-        // Логика отсчета
         const timer = setInterval(() => {
             gameState.countdown--;
             if (gameState.countdown <= 0) {
                 clearInterval(timer);
                 gameState.status = 'RACING';
-                
-                // Чтобы игра не замирала, шлем пакеты каждые 100мс принудительно
+                // Интервал обновления экрана во время гонки (50мс для плавности)
                 const heartBeat = setInterval(() => {
                     sync();
                     if (gameState.status !== 'RACING') clearInterval(heartBeat);
-                }, 100);
+                }, 50);
             }
             sync();
         }, 1000);
@@ -77,4 +68,4 @@ io.on('connection', (socket) => {
     });
 });
 
-server.listen(3000, () => console.log('Сервер запущен на порту 3000'));
+server.listen(3000, () => console.log('OK: 3000'));
