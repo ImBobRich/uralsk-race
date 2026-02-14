@@ -19,6 +19,7 @@ io.on('connection', (socket) => {
 
     socket.on('join', ({ tableId, teamName }) => {
         socket.tableId = tableId;
+        // Важно: создаем запись, если её нет, и НЕ перезаписываем существующую
         if (!gameState.tables[tableId]) {
             gameState.tables[tableId] = { 
                 id: tableId, 
@@ -30,12 +31,12 @@ io.on('connection', (socket) => {
     });
 
     socket.on('shake', () => {
-        // Тряска работает ТОЛЬКО в режиме RACING
         if (gameState.status !== 'RACING' || !socket.tableId) return;
         
         const table = gameState.tables[socket.tableId];
         if (table && table.score < 100) {
-            table.score += 0.4; 
+            // Скорость замедлена в 5 раз (было 0.4 -> стало 0.08)
+            table.score += 0.08; 
             
             if (table.score >= 100) {
                 table.score = 100;
@@ -43,7 +44,6 @@ io.on('connection', (socket) => {
                 gameState.winner = table.name;
                 io.emit('winner', { name: table.name });
             }
-            // Оптимизация: шлем обновления только во время гонки
             io.emit('updateState', gameState);
         }
     });
@@ -72,4 +72,4 @@ io.on('connection', (socket) => {
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`Server started on port ${PORT}`));
+server.listen(PORT, () => console.log(`Server started on 3000`));
