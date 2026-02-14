@@ -17,7 +17,29 @@
                         url('https://images.unsplash.com/photo-1598902108854-10e335adac99?q=80&w=2070&auto=format&fit=crop');
             background-size: cover; background-position: center;
         }
-        .header-title { color: gold; font-size: 5rem; text-align: center; margin-bottom: 40px; text-shadow: 0 0 30px rgba(255, 215, 0, 0.8); }
+
+        /* ОГНЕННОЕ НАЗВАНИЕ */
+        .header-title { 
+            color: #ff2400; /* Ярко-красный базовый */
+            font-size: 5.5rem; 
+            text-align: center; 
+            margin-bottom: 40px; 
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            animation: fire-flicker 1.5s infinite alternate;
+        }
+
+        @keyframes fire-flicker {
+            0% {
+                text-shadow: 0 0 10px #ff0000, 0 0 20px #ff4500, 0 0 30px #ff8c00;
+                transform: scale(1);
+            }
+            100% {
+                text-shadow: 0 0 20px #ff4500, 0 0 40px #ff8c00, 0 0 60px #ff0000, 0 -10px 30px #ff4500;
+                transform: scale(1.02);
+            }
+        }
+
         .main-row { display: flex; align-items: center; justify-content: center; gap: 80px; width: 90%; }
         .qr-wrap { background: white; padding: 20px; border-radius: 25px; border: 12px solid gold; box-shadow: 0 0 50px rgba(0,0,0,0.5); }
         .plate { background: rgba(0,0,0,0.85); padding: 40px; border: 4px solid gold; border-radius: 30px; min-width: 450px; }
@@ -40,7 +62,6 @@
         .horse-img { font-size: 5rem; animation: gallop 0.5s infinite ease-in-out; }
         .horse-label { background: #fff; color: #000; padding: 5px 15px; border-radius: 8px; font-weight: bold; border: 3px solid #000; margin-left: -15px; font-size: 1.5rem; white-space: nowrap; }
 
-        /* ЦВЕТА ДОРОЖЕК */
         .lane:nth-child(1) { background: #f4b4fe; } .lane:nth-child(2) { background: #ffff00; }
         .lane:nth-child(3) { background: #8eff8e; } .lane:nth-child(4) { background: #4df4ff; }
         .lane:nth-child(5) { background: #ff8e8e; } .lane:nth-child(6) { background: #cedc00; } .lane:nth-child(7) { background: #ff9900; }
@@ -54,7 +75,6 @@
         .m-in:disabled { background: #2e4a2e; color: #999; border: 1px solid #ffffff33; }
         .m-btn { width: 100%; padding: 20px; background: gold; font-weight: bold; font-size: 1.8rem; border-radius: 15px; border: none; color: #000; cursor: pointer; box-shadow: 0 5px 0 #b8860b; }
 
-        /* ПРОЧЕЕ */
         #cnt { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 18rem; color: gold; z-index: 100; display: none; text-shadow: 0 0 40px black; }
         #victory-screen { background: rgba(0,0,0,0.95); z-index: 9999; }
         #admin-screen { background: #222; padding: 30px; flex-direction: column; overflow-y: auto; text-align: left; }
@@ -127,11 +147,11 @@
         let selectedTable = null;
         let isWindowActive = true;
         let currentTablesCount = 0;
+        let lastState = null;
 
         window.onfocus = () => { isWindowActive = true; };
         window.onblur = () => { isWindowActive = false; };
 
-        // ИНИЦИАЛИЗАЦИЯ
         if (isScreen) {
             document.getElementById('lobby').style.display = 'flex';
             new QRCode(document.getElementById("qrcode"), { 
@@ -157,36 +177,30 @@
                     document.querySelectorAll('.t-btn').forEach(el => el.classList.remove('active'));
                     b.classList.add('active');
                     selectedTable = i;
-                    
-                    // Проверяем, занят ли стол другими (из последнего state)
                     updateNameInput(lastState);
                 };
                 grid.appendChild(b);
             }
         }
 
-        let lastState = null;
         function updateNameInput(state) {
             if (!state || isScreen || isAdmin) return;
             const nameInput = document.getElementById('m-name');
             if (selectedTable && state.tables[selectedTable]) {
                 nameInput.value = state.tables[selectedTable].name;
-                nameInput.disabled = true; // Блокируем, если команда уже есть
+                nameInput.disabled = true;
             } else {
                 nameInput.disabled = false;
-                if (!nameInput.value.includes("Стол")) { /* оставить как есть */ }
             }
         }
 
         function join() {
             const n = document.getElementById('m-name').value;
-            if(!selectedTable) return alert("Сначала выберите номер стола!");
-            
+            if(!selectedTable) return alert("Выберите номер стола!");
             socket.emit('join', { tableId: selectedTable, teamName: n });
             document.getElementById('m-setup').style.display = 'none';
             document.getElementById('m-race').style.display = 'block';
             document.getElementById('m-myname').innerText = n || "Стол " + selectedTable;
-            
             if (window.DeviceMotionEvent && DeviceMotionEvent.requestPermission) {
                 DeviceMotionEvent.requestPermission();
             }
@@ -201,18 +215,15 @@
 
         socket.on('updateState', (state) => {
             lastState = state;
-            
             if (!isScreen && !isAdmin) {
                 renderTableButtons(state.totalTables);
                 updateNameInput(state);
             }
-
             if (state.status === 'FINISHED') {
                 document.getElementById('victory-screen').style.display = 'flex';
                 document.getElementById('winner-text').innerText = state.winner;
                 return;
             }
-
             if (isScreen) {
                 if (state.status === 'LOBBY') {
                     document.getElementById('lobby').style.display = 'flex';
@@ -226,7 +237,6 @@
                     document.getElementById('stadium').style.display = 'flex';
                     document.getElementById('cnt').style.display = (state.status === 'COUNTDOWN') ? 'block' : 'none';
                     document.getElementById('cnt').innerText = state.countdown;
-
                     const field = document.getElementById('race-field');
                     Object.values(state.tables).forEach(t => {
                         let h = document.getElementById('h-' + t.id);
@@ -238,21 +248,17 @@
                             h = document.getElementById('h-' + t.id);
                         }
                         h.style.left = (t.score * 0.88) + '%';
-                        // Прыгают только когда гонка активна
                         h.querySelector('.horse-img').style.animationPlayState = (state.status === 'RACING') ? 'running' : 'paused';
                     });
                 }
             }
-
             if (isAdmin) {
-                document.getElementById('adm-stats').innerHTML = "<b>СПИСОК КОМАНД:</b><br>" + 
-                    Object.values(state.tables).map(t => `• Стол ${t.id}: <b>${t.name}</b> (${t.count} чел.)`).join('<br>');
+                document.getElementById('adm-stats').innerHTML = "<b>КОМАНДЫ:</b><br>" + 
+                    Object.values(state.tables).map(t => `Стол ${t.id}: ${t.name} (${t.count} чел.)`).join('<br>');
             }
         });
 
-        socket.on('gameRestarted', () => {
-            location.reload();
-        });
+        socket.on('gameRestarted', () => location.reload());
     </script>
 </body>
 </html>
