@@ -3,192 +3,144 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Уральские Скачки 2026</title>
+    <title>УРАЛЬСКИЕ СКАЧКИ 2026</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         body { margin: 0; background: #000; font-family: 'Arial Black', sans-serif; overflow: hidden; color: white; }
-        
-        /* СЕКЦИИ */
-        #lobby, #stadium, #victory-screen, #mobile { display: none; width: 100vw; height: 100vh; }
+        #lobby, #stadium, #victory-screen, #mobile { display: none; width: 100vw; height: 100vh; position: fixed; top: 0; left: 0; }
 
-        /* ЭКРАН С QR (ЛОББИ) */
-        #lobby { flex-direction: column; align-items: center; justify-content: center; background: radial-gradient(circle, #4a0000 0%, #000 100%); }
-        .qr-box { background: white; padding: 15px; border-radius: 10px; border: 5px solid #ffd700; }
-        #team-list { display: flex; flex-wrap: wrap; gap: 15px; margin-top: 30px; justify-content: center; }
-        .tag { background: #ffd700; color: #000; padding: 12px 25px; border-radius: 8px; font-weight: bold; font-size: 1.5rem; }
+        /* ЛОББИ - КАК В ОРИГИНАЛЕ */
+        #lobby { flex-direction: column; align-items: center; justify-content: center; background: radial-gradient(circle, #4a0000 0%, #000 100%); display: none; }
+        .qr-wrap { background: white; padding: 15px; border-radius: 15px; border: 4px solid gold; }
+        #team-list { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 25px; }
+        .tag { background: gold; color: black; padding: 10px 20px; border-radius: 5px; font-weight: bold; }
 
-        /* ИГРОВОЕ ПОЛЕ (2D В ВИДЕ ПОЛОС) */
-        #stadium { flex-direction: column; background: #1a3c15; }
-        #race-field { flex: 1; display: flex; flex-direction: column; padding: 10px 0; }
-        
-        .lane {
-            flex: 1; position: relative; display: flex; align-items: center;
-            border-bottom: 2px solid rgba(255,255,255,0.2);
-        }
-        /* Цвета как на твоем примере */
-        .lane:nth-child(1) { background: #f4b4fe; }
-        .lane:nth-child(2) { background: #ffff00; }
-        .lane:nth-child(3) { background: #8eff8e; }
-        .lane:nth-child(4) { background: #4df4ff; }
+        /* СТАДИОН */
+        #stadium { flex-direction: column; background: #1a3c15; display: none; }
+        .lane { flex: 1; position: relative; border-bottom: 2px solid rgba(255,255,255,0.1); display: flex; align-items: center; }
+        /* Цвета полос */
+        .lane:nth-child(1) { background: #f4b4fe; } .lane:nth-child(2) { background: #ffff00; }
+        .lane:nth-child(3) { background: #8eff8e; } .lane:nth-child(4) { background: #4df4ff; }
         .lane:nth-child(5) { background: #ff8e8e; }
+        .finish-line { position: absolute; right: 50px; top: 0; bottom: 0; width: 40px; background: repeating-linear-gradient(0deg, #fff, #fff 15px, #000 15px, #000 30px); border-left: 5px solid gold; }
+        .horse-unit { position: absolute; left: 0; display: flex; align-items: center; transition: left 0.1s linear; }
+        .horse-emoji { font-size: 5rem; transform: scaleX(-1); } /* МОРДОЙ ВПРАВО */
+        .horse-name { background: white; color: black; padding: 5px 15px; border-radius: 8px; font-weight: bold; border: 3px solid #000; margin-left: -15px; }
 
-        .finish-line {
-            position: absolute; right: 60px; top: 0; bottom: 0; width: 50px;
-            background: repeating-linear-gradient(0deg, #fff, #fff 15px, #000 15px, #000 30px);
-            border-left: 5px solid gold; z-index: 5;
-        }
+        #cnt { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; font-size: 18rem; color: gold; z-index: 5000; }
 
-        .horse-unit {
-            position: absolute; left: 0; display: flex; align-items: center;
-            transition: left 0.1s linear; z-index: 10;
-        }
-        .horse-emoji { 
-            font-size: 5rem; 
-            transform: scaleX(-1); /* Разворот мордой вправо */
-            filter: drop-shadow(5px 5px 5px rgba(0,0,0,0.4));
-        }
-        .horse-name { 
-            background: white; color: black; padding: 6px 18px; border-radius: 10px; 
-            font-weight: bold; font-size: 1.6rem; border: 3px solid #000; margin-left: -15px;
-        }
+        /* ЭКРАН ПОБЕДЫ (ДЛЯ ВСЕХ УСТРОЙСТВ) */
+        #victory-screen { flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.95); z-index: 9999; display: none; }
+        #winner-name { font-size: 5rem; color: #fff; margin: 30px 0; text-align: center; text-shadow: 0 0 20px gold; }
 
-        /* ТАЙМЕР */
-        #cnt-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8);
-            display: none; align-items: center; justify-content: center; font-size: 20rem; color: #ffd700; z-index: 1000;
-        }
-
-        /* ПОБЕДА */
-        #victory-screen { flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.9); z-index: 2000; }
-
-        /* МОБИЛЬНЫЙ ИНТЕРФЕЙС */
-        #mobile { text-align: center; padding: 30px; background: #1b5e20; box-sizing: border-box; }
-        .m-in { width: 100%; padding: 20px; margin: 15px 0; font-size: 1.5rem; border-radius: 12px; border: none; }
-        .m-btn { width: 100%; padding: 25px; background: #ffd700; border: none; font-weight: bold; font-size: 2rem; border-radius: 15px; cursor: pointer; }
+        /* МОБИЛКА */
+        #mobile { text-align: center; padding: 25px; background: #1b5e20; display: none; }
+        .m-in { width: 100%; padding: 18px; margin: 10px 0; font-size: 1.4rem; border-radius: 12px; border: none; box-sizing: border-box; }
+        .m-btn { width: 100%; padding: 22px; background: gold; border: none; font-weight: bold; font-size: 1.8rem; border-radius: 15px; }
         
-        #admin-btn { position: fixed; bottom: 20px; left: 20px; z-index: 3000; display: none; }
+        #admin-panel { position: fixed; bottom: 15px; left: 15px; z-index: 8000; display: none; }
     </style>
 </head>
 <body>
 
     <div id="lobby">
-        <h1 style="color: #ffd700; font-size: 4rem; margin-bottom: 10px;">УРАЛЬСКИЕ СКАЧКИ 2026</h1>
-        <div class="qr-box" id="player-qr"></div>
+        <h1 style="color: gold; font-size: 3.5rem;">РЕГИСТРАЦИЯ</h1>
+        <div class="qr-wrap" id="qr-code"></div>
         <div id="team-list"></div>
     </div>
 
     <div id="stadium">
-        <div id="race-field"></div>
-        <div id="cnt-overlay">5</div>
+        <div id="race-field" style="height: 100%; width: 100%; display: flex; flex-direction: column;"></div>
+        <div id="cnt">5</div>
     </div>
 
     <div id="victory-screen">
-        <h1 style="color: gold; font-size: 6rem; margin: 0;">ФИНИШ!</h1>
-        <div id="winner-display" style="font-size: 5rem; color: #fff; margin: 30px 0;"></div>
-        <button onclick="socket.emit('restart')" style="padding: 20px 60px; font-size: 2rem; background: gold; border: none; font-weight: bold; border-radius: 15px;">РЕСТАРТ</button>
+        <h1 style="color: gold; font-size: 5rem;">ФИНИШ!</h1>
+        <div id="winner-name"></div>
+        <button onclick="socket.emit('restart')" style="padding: 20px 50px; background: gold; border: none; font-weight: bold; border-radius: 10px; font-size: 1.5rem;">РЕСТАРТ</button>
     </div>
 
     <div id="mobile">
         <div id="m-setup">
-            <h2 style="color: gold; font-size: 2.5rem;">РЕГИСТРАЦИЯ</h2>
+            <h2 style="color: gold;">ВХОД В ИГРУ</h2>
             <input type="number" id="m-table" class="m-in" placeholder="№ СТОЛА">
-            <input type="text" id="m-name" class="m-in" placeholder="ИМЯ КОМАНДЫ">
-            <button onclick="joinGame()" class="m-btn">ПОДКЛЮЧИТЬСЯ</button>
+            <input type="text" id="m-name" class="m-in" placeholder="ВАША КОМАНДА">
+            <button onclick="mJoin()" class="m-btn">ГОТОВ</button>
         </div>
         <div id="m-race" style="display:none;">
-            <h2 id="m-myname" style="color: gold; font-size: 2rem;"></h2>
-            <div style="font-size: 5rem; margin: 40px 0;">📱🏃‍♂️</div>
-            <p style="font-size: 2rem; font-weight: bold;">ТРЯСИ ТЕЛЕФОН КАК МОЖНО БЫСТРЕЕ!</p>
+            <h2 id="m-display-name" style="color: gold;"></h2>
+            <div style="font-size: 6rem; margin: 30px 0;">🏃‍♂️💨</div>
+            <p style="font-size: 2rem;">ТРЯСИ ТЕЛЕФОН!</p>
         </div>
     </div>
 
-    <div id="admin-btn">
-        <button onclick="socket.emit('adminStartCountdown')" style="padding: 20px 40px; background: red; color: white; border: none; font-weight: bold; border-radius: 10px; font-size: 1.5rem;">СТАРТ</button>
-    </div>
+    <div id="admin-panel"><button onclick="socket.emit('adminStartCountdown')" style="padding: 20px; background: red; color: white; border-radius: 10px;">СТАРТ</button></div>
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io({ query: { admin: location.search.includes('admin') } });
         const isScreen = location.search.includes('screen');
-        const isAdmin = location.search.includes('admin');
+        let gameActive = true; // Флаг, блокирующий экран при финише
 
         if (isScreen) {
             document.getElementById('lobby').style.display = 'flex';
-            new QRCode(document.getElementById("player-qr"), window.location.origin);
+            new QRCode(document.getElementById("qr-code"), window.location.origin);
         } else {
             document.getElementById('mobile').style.display = 'block';
         }
-        if (isAdmin) document.getElementById('admin-btn').style.display = 'block';
+        if (location.search.includes('admin')) document.getElementById('admin-panel').style.display = 'block';
 
-        function joinGame() {
-            const tableId = document.getElementById('m-table').value;
-            const teamName = document.getElementById('m-name').value;
-            if(!tableId) return alert("Введите номер стола!");
-            
-            socket.emit('join', { tableId, teamName });
-            
+        function mJoin() {
+            const t = document.getElementById('m-table').value;
+            const n = document.getElementById('m-name').value;
+            if(!t) return;
+            socket.emit('join', { tableId: t, teamName: n });
             document.getElementById('m-setup').style.display = 'none';
             document.getElementById('m-race').style.display = 'block';
-            document.getElementById('m-myname').innerText = teamName || "Стол "+tableId;
-
-            // Активация гироскопа
-            if (typeof DeviceMotionEvent.requestPermission === 'function') {
-                DeviceMotionEvent.requestPermission();
-            }
+            document.getElementById('m-display-name').innerText = n || "Стол "+t;
+            if (window.DeviceMotionEvent && DeviceMotionEvent.requestPermission) DeviceMotionEvent.requestPermission();
             window.addEventListener('devicemotion', (e) => {
-                let acc = e.accelerationIncludingGravity;
-                let total = Math.abs(acc.x) + Math.abs(acc.y) + Math.abs(acc.z);
-                if (total > 25) socket.emit('shake');
+                if (!gameActive) return;
+                let a = e.accelerationIncludingGravity;
+                if (Math.abs(a.x) + Math.abs(a.y) + Math.abs(a.z) > 25) socket.emit('shake');
             });
         }
 
         socket.on('updateState', (state) => {
-            if (!isScreen) return;
+            if (!gameActive) return; // Если уже есть победитель, стейты игнорируем
 
-            if (state.status === 'LOBBY') {
-                document.getElementById('lobby').style.display = 'flex';
-                document.getElementById('stadium').style.display = 'none';
-                document.getElementById('victory-screen').style.display = 'none';
-                document.getElementById('team-list').innerHTML = Object.values(state.tables)
-                    .map(t => `<div class="tag">${t.name}</div>`).join('');
-                return;
+            if (isScreen) {
+                if (state.status === 'LOBBY') {
+                    document.getElementById('lobby').style.display = 'flex';
+                    document.getElementById('stadium').style.display = 'none';
+                    document.getElementById('team-list').innerHTML = Object.values(state.tables).map(t => `<div class="tag">${t.name}</div>`).join('');
+                } else {
+                    document.getElementById('lobby').style.display = 'none';
+                    document.getElementById('stadium').style.display = 'flex';
+                    document.getElementById('cnt').style.display = (state.status === 'COUNTDOWN') ? 'flex' : 'none';
+                    document.getElementById('cnt').innerText = state.countdown;
+
+                    const field = document.getElementById('race-field');
+                    field.innerHTML = '';
+                    Object.values(state.tables).forEach(t => {
+                        const lane = document.createElement('div');
+                        lane.className = 'lane';
+                        lane.innerHTML = `<div class="finish-line"></div><div class="horse-unit" style="left:${t.score*0.88}%"><div class="horse-emoji">🏇</div><div class="horse-name">${t.name}</div></div>`;
+                        field.appendChild(lane);
+                    });
+                }
             }
-
-            document.getElementById('lobby').style.display = 'none';
-            document.getElementById('stadium').style.display = 'flex';
-            
-            // Таймер
-            const overlay = document.getElementById('cnt-overlay');
-            if (state.status === 'COUNTDOWN') {
-                overlay.style.display = 'flex';
-                overlay.innerText = state.countdown;
-            } else {
-                overlay.style.display = 'none';
-            }
-
-            // Отрисовка дорожек
-            const field = document.getElementById('race-field');
-            field.innerHTML = ''; 
-            Object.values(state.tables).forEach(t => {
-                const lane = document.createElement('div');
-                lane.className = 'lane';
-                const position = t.score * 0.88; // 88% ширины - предел у финиша
-                
-                lane.innerHTML = `
-                    <div class="finish-line"></div>
-                    <div class="horse-unit" style="left: ${position}%">
-                        <div class="horse-emoji">🏇</div>
-                        <div class="horse-name">${t.name}</div>
-                    </div>
-                `;
-                field.appendChild(lane);
-            });
         });
 
+        // ПРИНУДИТЕЛЬНЫЙ ВЫВОД ПОБЕДИТЕЛЯ НА ВСЕ УСТРОЙСТВА
         socket.on('winner', (data) => {
-            if (isScreen) {
-                document.getElementById('victory-screen').style.display = 'flex';
-                document.getElementById('winner-display').innerText = data.name;
+            gameActive = false; // Останавливаем все процессы
+            document.getElementById('victory-screen').style.display = 'flex';
+            document.getElementById('winner-name').innerText = data.name;
+            
+            // Если это мобилка - прячем интерфейс тряски
+            if (!isScreen) {
+                document.getElementById('m-race').style.display = 'none';
             }
         });
 
