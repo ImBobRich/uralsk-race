@@ -2,6 +2,7 @@ const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const fs = require('fs');
+const path = require('path');
 
 const app = express();
 const server = http.createServer(app);
@@ -9,7 +10,7 @@ const io = new Server(server);
 
 app.use(express.static(__dirname + '/public'));
 
-const SETTINGS_FILE = './settings.json';
+const SETTINGS_FILE = path.join(__dirname, 'settings.json');
 
 let gameState = {
     status: 'LOBBY',
@@ -22,12 +23,18 @@ let gameState = {
     speedMultiplier: 1.0
 };
 
-// Загрузка
-if (fs.existsSync(SETTINGS_FILE)) {
-    try {
-        const saved = JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf8'));
-        gameState = { ...gameState, ...saved };
-    } catch (e) { console.log("Ошибка чтения настроек"); }
+// Принудительная загрузка при старте
+try {
+    if (fs.existsSync(SETTINGS_FILE)) {
+        const data = fs.readFileSync(SETTINGS_FILE, 'utf8');
+        if (data) {
+            const saved = JSON.parse(data);
+            gameState = Object.assign(gameState, saved);
+            console.log("Параметры успешно загружены из файла");
+        }
+    }
+} catch (err) {
+    console.error("Ошибка при чтении файла настроек:", err);
 }
 
 const broadcast = () => io.emit('updateState', gameState);
@@ -40,7 +47,7 @@ io.on('connection', (socket) => {
             gameState.tables[tableId] = { id: tableId, name: teamName || `Стол ${tableId}`, score: 0, count: 1 };
         } else if (gameState.tables[tableId].count < gameState.maxPlayersPerTable) {
             gameState.tables[tableId].count++;
-        } else return;
+        }
         socket.tableId = tableId;
         socket.emit('joinSuccess');
         broadcast();
@@ -50,7 +57,7 @@ io.on('connection', (socket) => {
         if (gameState.status !== 'RACING' || !socket.tableId) return;
         let t = gameState.tables[socket.tableId];
         if (t && t.score < 100) {
-            t.score += (0.5 * (gameState.speedMultiplier || 1)); 
+            t.score += (0.5 * gameState.speedMultiplier); 
             if (t.score >= 100) {
                 t.score = 100;
                 gameState.status = 'FINISHED';
@@ -60,18 +67,41 @@ io.on('connection', (socket) => {
         }
     });
 
-    socket.on('adminConfig', (c) => {
-        gameState.totalTables = parseInt(c.totalTables);
-        gameState.maxPlayersPerTable = parseInt(c.maxPlayers);
-        gameState.minTeamsToStart = parseInt(c.minTeams);
-        gameState.speedMultiplier = parseFloat(c.speed);
-        fs.writeFileSync(SETTINGS_FILE, JSON.stringify({
+    // Возвращено название функции adminConfig
+    socket.on('adminConfig', (config) => {
+        gameState.totalTables = parseInt(config.totalTables);
+        gameState.maxPlayersPerTable = parseInt(config.maxPlayers);
+        gameState.minTeamsToStart = parseInt(config.minTeams);
+        gameState.speedMultiplier = parseFloat(config.speed);
+        
+        // Надежное сохранение
+        const toSave = {
             totalTables: gameState.totalTables,
             maxPlayersPerTable: gameState.maxPlayersPerTable,
             minTeamsToStart: gameState.minTeamsToStart,
             speedMultiplier: gameState.speedMultiplier
-        }));
+        };
+        fs.writeFile(SETTINGS_FILE, JSON.stringify(toSave, null, 2), (err) => {
+            if (err) console.error("ОШИБКА СОХРАНЕНИЯ:", err);
+            else console.log("Параметры сохранены в settings.json");
+        });
         broadcast();
+    });
+
+    // Возвращено оригинальное название функции запуска
+    socket.on('adminStartCountdown', () => {
+        if (Object.keys(gameState.tables).length < gameState.minTeamsToStart) return;
+        gameState.status = 'COUNTDOWN';
+        gameState.countdown = 5;
+        broadcast();
+        const timer = setInterval(() => {
+            gameState.countdown--;
+            if (gameState.countdown <= 0) {
+                clearInterval(timer);
+                gameState.status = 'RACING';
+            }
+            broadcast();
+        }, 1000);
     });
 
     socket.on('restart', () => {
@@ -83,4 +113,4 @@ io.on('connection', (socket) => {
     });
 });
 
-server.listen(3000, () => console.log('SERVER READY'));
+server.listen(3000, () => console.log('SERVER IS RUNNING ON PORT 3000'));
