@@ -1,6 +1,7 @@
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
+const fs = require('fs');
 
 const app = express();
 const server = http.createServer(app);
@@ -8,18 +9,24 @@ const io = new Server(server);
 
 app.use(express.static(__dirname + '/public'));
 
-// Начальные настройки (сохраняются между играми)
+const SETTINGS_FILE = './settings.json';
+
+// Загрузка настроек при старте
 let gameState = {
     status: 'LOBBY',
     tables: {}, 
     countdown: 5,
     winner: null,
-    // Настройки из админки
     totalTables: 7,
     maxPlayersPerTable: 3,
     minTeamsToStart: 2,
     speedMultiplier: 1.0
 };
+
+if (fs.existsSync(SETTINGS_FILE)) {
+    const saved = JSON.parse(fs.readFileSync(SETTINGS_FILE));
+    Object.assign(gameState, saved);
+}
 
 const broadcast = () => io.emit('updateState', gameState);
 
@@ -32,9 +39,7 @@ io.on('connection', (socket) => {
         } else {
             if (gameState.tables[tableId].count < gameState.maxPlayersPerTable) {
                 gameState.tables[tableId].count++;
-            } else {
-                return socket.emit('errorMsg', 'Команда полная');
-            }
+            } else return;
         }
         socket.tableId = tableId;
         socket.emit('joinSuccess');
@@ -45,7 +50,6 @@ io.on('connection', (socket) => {
         if (gameState.status !== 'RACING' || !socket.tableId) return;
         let t = gameState.tables[socket.tableId];
         if (t && t.score < 100) {
-            // Применяем коэффициент скорости
             t.score += (0.5 * gameState.speedMultiplier); 
             if (t.score >= 100) {
                 t.score = 100;
@@ -61,22 +65,24 @@ io.on('connection', (socket) => {
         gameState.maxPlayersPerTable = parseInt(c.maxPlayers);
         gameState.minTeamsToStart = parseInt(c.minTeams);
         gameState.speedMultiplier = parseFloat(c.speed);
+        // Сохраняем в файл
+        fs.writeFileSync(SETTINGS_FILE, JSON.stringify({
+            totalTables: gameState.totalTables,
+            maxPlayersPerTable: gameState.maxPlayersPerTable,
+            minTeamsToStart: gameState.minTeamsToStart,
+            speedMultiplier: gameState.speedMultiplier
+        }));
         broadcast();
     });
 
     socket.on('adminStartCountdown', () => {
-        // Проверка на минимальное кол-во команд перед стартом
         if (Object.keys(gameState.tables).length < gameState.minTeamsToStart) return;
-        
         gameState.status = 'COUNTDOWN';
         gameState.countdown = 5;
         broadcast();
         const timer = setInterval(() => {
             gameState.countdown--;
-            if (gameState.countdown <= 0) { 
-                clearInterval(timer); 
-                gameState.status = 'RACING'; 
-            }
+            if (gameState.countdown <= 0) { clearInterval(timer); gameState.status = 'RACING'; }
             broadcast();
         }, 1000);
     });
@@ -85,10 +91,9 @@ io.on('connection', (socket) => {
         gameState.status = 'LOBBY';
         gameState.tables = {};
         gameState.winner = null;
-        // Настройки totalTables, maxPlayers и т.д. НЕ СБРАСЫВАЮТСЯ
         io.emit('gameRestarted');
         broadcast();
     });
 });
 
-server.listen(3000, () => console.log('SERVER READY: PORT 3000'));
+server.listen(3000, () => console.log('SERVER RUNNING'));
