@@ -9,7 +9,6 @@ const io = new Server(server);
 
 app.use(express.static(__dirname + '/public'));
 
-// Храним данные ТОЛЬКО в оперативной памяти
 let gameState = {
     status: 'LOBBY',
     tables: {}, 
@@ -56,7 +55,6 @@ io.on('connection', (socket) => {
         gameState.maxPlayersPerTable = parseInt(config.maxPlayers);
         gameState.minTeamsToStart = parseInt(config.minTeams);
         gameState.speedMultiplier = parseFloat(config.speed);
-        console.log("Параметры обновлены в RAM");
         broadcast();
     });
 
@@ -84,4 +82,4 @@ io.on('connection', (socket) => {
     });
 });
 
-server.listen(3000, () => console.log('SERVER READY (NO-RESTART MODE)'));
+server.listen(3000, () => console.log('SERVER RUNNING'));
