@@ -1,0 +1,6 @@
+{
+  "totalTables": 7,
+  "maxPlayersPerTable": 3,
+  "minTeamsToStart": 2,
+  "speedMultiplier": 1.0
+}
