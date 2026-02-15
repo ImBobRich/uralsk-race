@@ -23,18 +23,15 @@ let gameState = {
     speedMultiplier: 1.0
 };
 
-// Принудительная загрузка при старте
-try {
-    if (fs.existsSync(SETTINGS_FILE)) {
+// Загрузка настроек при старте сервера
+if (fs.existsSync(SETTINGS_FILE)) {
+    try {
         const data = fs.readFileSync(SETTINGS_FILE, 'utf8');
         if (data) {
             const saved = JSON.parse(data);
             gameState = Object.assign(gameState, saved);
-            console.log("Параметры успешно загружены из файла");
         }
-    }
-} catch (err) {
-    console.error("Ошибка при чтении файла настроек:", err);
+    } catch (e) { console.error("Ошибка чтения настроек"); }
 }
 
 const broadcast = () => io.emit('updateState', gameState);
@@ -67,28 +64,23 @@ io.on('connection', (socket) => {
         }
     });
 
-    // Возвращено название функции adminConfig
     socket.on('adminConfig', (config) => {
         gameState.totalTables = parseInt(config.totalTables);
         gameState.maxPlayersPerTable = parseInt(config.maxPlayers);
         gameState.minTeamsToStart = parseInt(config.minTeams);
         gameState.speedMultiplier = parseFloat(config.speed);
         
-        // Надежное сохранение
-        const toSave = {
-            totalTables: gameState.totalTables,
-            maxPlayersPerTable: gameState.maxPlayersPerTable,
-            minTeamsToStart: gameState.minTeamsToStart,
-            speedMultiplier: gameState.speedMultiplier
-        };
-        fs.writeFile(SETTINGS_FILE, JSON.stringify(toSave, null, 2), (err) => {
-            if (err) console.error("ОШИБКА СОХРАНЕНИЯ:", err);
-            else console.log("Параметры сохранены в settings.json");
-        });
+        try {
+            fs.writeFileSync(SETTINGS_FILE, JSON.stringify({
+                totalTables: gameState.totalTables,
+                maxPlayersPerTable: gameState.maxPlayersPerTable,
+                minTeamsToStart: gameState.minTeamsToStart,
+                speedMultiplier: gameState.speedMultiplier
+            }, null, 2));
+        } catch (e) { console.error("Ошибка сохранения"); }
         broadcast();
     });
 
-    // Возвращено оригинальное название функции запуска
     socket.on('adminStartCountdown', () => {
         if (Object.keys(gameState.tables).length < gameState.minTeamsToStart) return;
         gameState.status = 'COUNTDOWN';
@@ -113,4 +105,4 @@ io.on('connection', (socket) => {
     });
 });
 
-server.listen(3000, () => console.log('SERVER IS RUNNING ON PORT 3000'));
+server.listen(3000, () => console.log('SERVER READY'));
