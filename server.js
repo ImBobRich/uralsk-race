@@ -1,7 +1,6 @@
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
-const fs = require('fs');
 const path = require('path');
 
 const app = express();
@@ -10,8 +9,7 @@ const io = new Server(server);
 
 app.use(express.static(__dirname + '/public'));
 
-const SETTINGS_FILE = path.join(__dirname, 'settings.json');
-
+// Храним данные ТОЛЬКО в оперативной памяти
 let gameState = {
     status: 'LOBBY',
     tables: {}, 
@@ -22,17 +20,6 @@ let gameState = {
     minTeamsToStart: 2,
     speedMultiplier: 1.0
 };
-
-// Загрузка настроек при старте сервера
-if (fs.existsSync(SETTINGS_FILE)) {
-    try {
-        const data = fs.readFileSync(SETTINGS_FILE, 'utf8');
-        if (data) {
-            const saved = JSON.parse(data);
-            gameState = Object.assign(gameState, saved);
-        }
-    } catch (e) { console.error("Ошибка чтения настроек"); }
-}
 
 const broadcast = () => io.emit('updateState', gameState);
 
@@ -69,15 +56,7 @@ io.on('connection', (socket) => {
         gameState.maxPlayersPerTable = parseInt(config.maxPlayers);
         gameState.minTeamsToStart = parseInt(config.minTeams);
         gameState.speedMultiplier = parseFloat(config.speed);
-        
-        try {
-            fs.writeFileSync(SETTINGS_FILE, JSON.stringify({
-                totalTables: gameState.totalTables,
-                maxPlayersPerTable: gameState.maxPlayersPerTable,
-                minTeamsToStart: gameState.minTeamsToStart,
-                speedMultiplier: gameState.speedMultiplier
-            }, null, 2));
-        } catch (e) { console.error("Ошибка сохранения"); }
+        console.log("Параметры обновлены в RAM");
         broadcast();
     });
 
@@ -105,4 +84,4 @@ io.on('connection', (socket) => {
     });
 });
 
-server.listen(3000, () => console.log('SERVER READY'));
+server.listen(3000, () => console.log('SERVER READY (NO-RESTART MODE)'));
