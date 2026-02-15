@@ -11,87 +11,88 @@
         body { margin: 0; background: #000; font-family: 'Arial Black', sans-serif; color: white; overflow: hidden; }
         .page { display: none; width: 100vw; height: 100vh; position: fixed; top: 0; left: 0; flex-direction: column; align-items: center; justify-content: center; }
         
-        /* ТВ ЛОББИ */
-        .title-main { font-size: 7vh; color: var(--gold); text-align: center; margin-bottom: 2vh; line-height: 1.1; }
+        /* Главный экран (ТВ) */
+        #lobby { background: #000; }
+        .title-main { font-size: 7vh; color: var(--gold); margin-bottom: 2vh; text-align: center; }
         .qr-card { background: white; padding: 15px; border-radius: 15px; border: 6px solid var(--gold); }
         #qrcode img { width: 30vh !important; height: 30vh !important; }
-        .reg-box { background: #111; border: 2px solid var(--gold); border-radius: 20px; padding: 20px; width: 450px; margin-top: 20px; text-align: left; }
-        #teams-display { display: flex; flex-wrap: wrap; gap: 8px; margin: 15px 0; }
-        .t-badge { background: var(--gold); color: #000; padding: 4px 10px; border-radius: 5px; font-size: 1.6vh; font-weight: bold; }
-        .btn-tv { width: 100%; padding: 15px; font-size: 2.5vh; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; }
-        .btn-tv:disabled { background: #333; color: #666; }
-        .btn-tv:enabled { background: var(--gold); color: #000; }
 
-        /* ИГРОВОЕ ПОЛЕ */
+        .reg-block { 
+            background: #111; border: 2px solid var(--gold); border-radius: 20px; 
+            padding: 20px; margin-top: 20px; width: 450px; text-align: left;
+        }
+        #teams-list { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px; }
+        .team-badge { background: var(--gold); color: #000; padding: 4px 10px; border-radius: 5px; font-size: 1.6vh; font-weight: bold; }
+
+        .btn-start-tv {
+            width: 100%; padding: 15px; font-size: 2.5vh; border-radius: 10px; border: none; font-weight: bold; cursor: pointer;
+        }
+        .btn-start-tv:disabled { background: #333; color: #666; }
+        .btn-start-tv.active { background: var(--gold); color: #000; }
+
+        /* Экран гонки */
         #stadium { background: #1a3c15; align-items: stretch; }
         .lane { flex: 1; border-bottom: 1px solid rgba(255,255,255,0.1); position: relative; display: flex; align-items: center; }
         .horse { position: absolute; left: 0; transition: left 0.2s linear; display: flex; align-items: center; }
         .horse-img { font-size: 8vh; transform: scaleX(-1); }
         .horse-name { background: var(--gold); color: #000; padding: 2px 8px; border-radius: 4px; font-size: 1.8vh; font-weight: bold; margin-left: -5px; }
 
-        /* МОБИЛКА */
-        .m-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; margin-bottom: 15px; }
-        .m-btn { padding: 20px; background: #fff; color: #000; border-radius: 10px; font-weight: bold; border: 5px solid transparent; text-align: center; font-size: 1.2rem; }
+        /* Мобильный интерфейс */
+        .m-btn { padding: 15px; background: #fff; color: #000; border-radius: 8px; font-weight: bold; border: 4px solid transparent; text-align: center; }
         .m-btn.selected { border-color: var(--gold); background: #ffeb3b; }
-        .m-btn.full { opacity: 0.3; pointer-events: none; }
 
-        /* АДМИНКА */
+        /* Админка */
         .adm-card { background: #1a1a1a; border: 2px solid var(--gold); border-radius: 15px; padding: 20px; width: 380px; }
         .adm-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .adm-row input { width: 70px; height: 35px; text-align: center; font-size: 1.2rem; }
+        .adm-row input { width: 70px; height: 30px; text-align: center; }
     </style>
 </head>
 <body>
     <audio id="fanfare" src="https://actions.google.com/sounds/v1/human_voices/applause_clapping_and_cheering.ogg"></audio>
 
     <div id="lobby" class="page">
-        <h1 class="title-main">СОЛЛАЛЬ 2026.<br>УРАЛЬСКИЕ СКАЧКИ</h1>
+        <h1 class="title-main">СОЛЛАЛЬ 2026. УРАЛЬСКИЕ СКАЧКИ</h1>
         <div class="qr-card"><div id="qrcode"></div></div>
-        <div class="reg-box">
-            <div style="color:var(--gold); font-size:2.5vh;">РЕГИСТРАЦИЯ:</div>
-            <div id="teams-display"></div>
-            <button id="main-start-btn" class="btn-tv" onclick="socket.emit('adminStartCountdown')" disabled>ЖДЕМ КОМАНДЫ</button>
+        <div class="reg-block">
+            <div id="teams-list"></div>
+            <button id="btn-start" class="btn-start-tv" onclick="socket.emit('adminStartCountdown')" disabled>ЖДЕМ КОМАНДЫ</button>
         </div>
     </div>
 
     <div id="stadium" class="page">
         <div id="tracks" style="flex:1; display:flex; flex-direction:column;"></div>
-        <div id="cnt" style="position:fixed; font-size:30vh; color:var(--gold); display:none; z-index:100;">5</div>
+        <div id="cnt" style="position:fixed; font-size:30vh; color:var(--gold); display:none;">5</div>
     </div>
 
     <div id="victory" class="page">
         <h1 style="color:red; font-size:10vh;">ФИНИШ</h1>
-        <h2 style="font-size:5vh;">ПОБЕДИТЕЛЬ: <span id="win-team" style="color:var(--gold);"></span></h2>
-        <button onclick="socket.emit('restart')" style="padding:15px 40px; font-size:1.5rem; background:var(--gold); border:none; border-radius:10px;">ЗАНОВО</button>
+        <h2 style="font-size:5vh;">ПОБЕДИТЕЛЬ: <span id="win-name"></span></h2>
+        <button onclick="socket.emit('restart')">ЗАНОВО</button>
     </div>
 
-    <div id="mobile" class="page" style="background:#1b5e20; padding: 20px; box-sizing: border-box;">
+    <div id="mobile" class="page" style="background:#1b5e20; padding: 20px;">
         <div id="m-join">
-            <h3 style="text-align:center; color:var(--gold);">ВЫБЕРИ СТОЛ:</h3>
-            <div id="m-grid" class="m-grid"></div>
-            <input type="text" id="m-name" style="width:100%; padding:15px; border-radius:10px; border:none; margin-bottom:15px; box-sizing:border-box; font-size:1.2rem;" placeholder="Имя команды">
-            <button onclick="join()" style="width:100%; padding:20px; background:var(--gold); font-weight:bold; border-radius:10px; border:none; font-size:1.3rem;">УЧАСТВОВАТЬ</button>
+            <div id="m-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:15px;"></div>
+            <input type="text" id="m-team-name" style="width:100%; padding:15px; margin-bottom:15px;" placeholder="Имя команды">
+            <button onclick="joinGame()" style="width:100%; padding:20px; background:var(--gold);">УЧАСТВОВАТЬ</button>
         </div>
-        <div id="m-shake" class="page" style="background:#1b5e20; display:none;">
-            <h1 style="font-size:4rem; color:var(--gold);">ТРЯСИ!</h1>
-        </div>
+        <div id="m-shake" class="page" style="display:none;"><h1>ТРЯСИ!</h1></div>
     </div>
 
     <div id="admin" class="page">
         <div class="adm-card">
-            <h2 style="color:var(--gold); text-align:center; margin-top:0;">НАСТРОЙКИ</h2>
             <div class="adm-row"><span>Столов:</span><input type="number" id="a-tables"></div>
             <div class="adm-row"><span>В команде:</span><input type="number" id="a-limit"></div>
             <div class="adm-row"><span>Мин. команд:</span><input type="number" id="a-min"></div>
             <div class="adm-row"><span>Темп:</span><input type="number" id="a-speed" step="0.1"></div>
-            <button onclick="saveA()" style="width:100%; padding:15px; background:var(--gold); font-weight:bold; border:none; border-radius:10px;">СОХРАНИТЬ</button>
+            <button onclick="saveSettings()" style="width:100%;">СОХРАНИТЬ</button>
         </div>
     </div>
 
     <script>
         const socket = io();
         const urlParams = new URLSearchParams(window.location.search);
-        let myT = null, isJoined = false, curState = null;
+        let selectedTableId = null, joined = false;
 
         window.onload = () => {
             if(urlParams.has('screen')) document.getElementById('lobby').style.display = 'flex', new QRCode(document.getElementById("qrcode"), { text: window.location.origin, width: 300, height: 300 });
@@ -99,66 +100,58 @@
             else document.getElementById('mobile').style.display = 'flex';
         };
 
-        function selectT(id) { myT = id; renderGrid(); }
-
-        function renderGrid() {
-            if(!curState) return;
-            const container = document.getElementById('m-grid');
-            container.innerHTML = '';
-            for(let i=1; i<=curState.totalTables; i++) {
-                const t = curState.tables[i];
-                const b = document.createElement('div');
-                b.className = `m-btn ${t && t.count >= curState.maxPlayersPerTable ? 'full' : ''} ${myT == i ? 'selected' : ''}`;
-                b.innerText = `СТОЛ ${i}`;
-                b.onclick = () => selectT(i);
-                container.appendChild(b);
-            }
+        function selectTableCell(id) {
+            selectedTableId = id;
+            socket.emit('updateStateRequest'); // Просто пинг для обновления
         }
 
-        function saveA() {
+        function saveSettings() {
             socket.emit('adminConfig', {
                 totalTables: document.getElementById('a-tables').value,
                 maxPlayers: document.getElementById('a-limit').value,
                 minTeams: document.getElementById('a-min').value,
                 speed: document.getElementById('a-speed').value
             });
-            alert("ОК");
         }
 
-        function join() {
-            if(!myT) return alert("Выбери стол!");
-            socket.emit('join', { tableId: myT, teamName: document.getElementById('m-name').value });
+        function joinGame() {
+            if(!selectedTableId) return alert("Выбери стол!");
+            socket.emit('join', { tableId: selectedTableId, teamName: document.getElementById('m-team-name').value });
         }
 
         socket.on('joinSuccess', () => {
-            isJoined = true;
+            joined = true;
             document.getElementById('m-join').style.display = 'none';
             document.getElementById('m-shake').style.display = 'flex';
         });
 
         socket.on('updateState', (s) => {
-            curState = s;
             if(urlParams.has('admin')) {
                 document.getElementById('a-tables').value = s.totalTables;
                 document.getElementById('a-limit').value = s.maxPlayersPerTable;
                 document.getElementById('a-min').value = s.minTeamsToStart;
                 document.getElementById('a-speed').value = s.speedMultiplier;
             }
-            if(!urlParams.has('screen') && !urlParams.has('admin') && !isJoined) renderGrid();
+            if(!urlParams.has('screen') && !urlParams.has('admin') && !joined) {
+                const grid = document.getElementById('m-grid');
+                grid.innerHTML = '';
+                for(let i=1; i<=s.totalTables; i++) {
+                    const b = document.createElement('div');
+                    b.className = `m-btn ${selectedTableId == i ? 'selected' : ''}`;
+                    b.innerText = `СТОЛ ${i}`;
+                    b.onclick = () => { selectedTableId = i; socket.emit('updateState', s); };
+                    grid.appendChild(b);
+                }
+            }
             if(urlParams.has('screen')) {
                 if(s.status === 'LOBBY') {
                     document.getElementById('lobby').style.display = 'flex';
                     document.getElementById('stadium').style.display = 'none';
-                    document.getElementById('victory').style.display = 'none';
-                    const btn = document.getElementById('main-start-btn');
+                    const btn = document.getElementById('btn-start');
                     const teams = Object.values(s.tables);
                     btn.disabled = teams.length < s.minTeamsToStart;
-                    btn.innerText = teams.length < s.minTeamsToStart ? `ЖДЕМ (${teams.length}/${s.minTeamsToStart})` : "СТАРТ";
-                    document.getElementById('teams-display').innerHTML = teams.map(t => `<div class="t-badge">${t.name}</div>`).join('');
-                } else if(s.status === 'FINISHED') {
-                    document.getElementById('victory').style.display = 'flex';
-                    document.getElementById('win-team').innerText = s.winner;
-                    document.getElementById('fanfare').play();
+                    if(!btn.disabled) btn.classList.add('active');
+                    document.getElementById('teams-list').innerHTML = teams.map(t => `<div class="team-badge">${t.name}</div>`).join('');
                 } else {
                     document.getElementById('lobby').style.display = 'none';
                     document.getElementById('stadium').style.display = 'flex';
@@ -178,12 +171,10 @@
             }
         });
 
-        socket.on('gameRestarted', () => location.reload());
-
         window.addEventListener('devicemotion', (e) => {
-            if(!isJoined) return;
+            if(!joined) return;
             const a = e.accelerationIncludingGravity;
-            if(Math.abs(a.x)+Math.abs(a.y)+Math.abs(acc.z) > 25) socket.emit('shake');
+            if(Math.abs(a.x)+Math.abs(a.y)+Math.abs(a.z) > 25) socket.emit('shake');
         });
     </script>
 </body>
