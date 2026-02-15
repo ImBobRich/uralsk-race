@@ -11,7 +11,6 @@ app.use(express.static(__dirname + '/public'));
 
 const SETTINGS_FILE = './settings.json';
 
-// Загрузка настроек при старте
 let gameState = {
     status: 'LOBBY',
     tables: {}, 
@@ -23,9 +22,12 @@ let gameState = {
     speedMultiplier: 1.0
 };
 
+// Загрузка
 if (fs.existsSync(SETTINGS_FILE)) {
-    const saved = JSON.parse(fs.readFileSync(SETTINGS_FILE));
-    Object.assign(gameState, saved);
+    try {
+        const saved = JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf8'));
+        gameState = { ...gameState, ...saved };
+    } catch (e) { console.log("Ошибка чтения настроек"); }
 }
 
 const broadcast = () => io.emit('updateState', gameState);
@@ -36,11 +38,9 @@ io.on('connection', (socket) => {
     socket.on('join', ({ tableId, teamName }) => {
         if (!gameState.tables[tableId]) {
             gameState.tables[tableId] = { id: tableId, name: teamName || `Стол ${tableId}`, score: 0, count: 1 };
-        } else {
-            if (gameState.tables[tableId].count < gameState.maxPlayersPerTable) {
-                gameState.tables[tableId].count++;
-            } else return;
-        }
+        } else if (gameState.tables[tableId].count < gameState.maxPlayersPerTable) {
+            gameState.tables[tableId].count++;
+        } else return;
         socket.tableId = tableId;
         socket.emit('joinSuccess');
         broadcast();
@@ -50,7 +50,7 @@ io.on('connection', (socket) => {
         if (gameState.status !== 'RACING' || !socket.tableId) return;
         let t = gameState.tables[socket.tableId];
         if (t && t.score < 100) {
-            t.score += (0.5 * gameState.speedMultiplier); 
+            t.score += (0.5 * (gameState.speedMultiplier || 1)); 
             if (t.score >= 100) {
                 t.score = 100;
                 gameState.status = 'FINISHED';
@@ -65,7 +65,6 @@ io.on('connection', (socket) => {
         gameState.maxPlayersPerTable = parseInt(c.maxPlayers);
         gameState.minTeamsToStart = parseInt(c.minTeams);
         gameState.speedMultiplier = parseFloat(c.speed);
-        // Сохраняем в файл
         fs.writeFileSync(SETTINGS_FILE, JSON.stringify({
             totalTables: gameState.totalTables,
             maxPlayersPerTable: gameState.maxPlayersPerTable,
@@ -73,18 +72,6 @@ io.on('connection', (socket) => {
             speedMultiplier: gameState.speedMultiplier
         }));
         broadcast();
-    });
-
-    socket.on('adminStartCountdown', () => {
-        if (Object.keys(gameState.tables).length < gameState.minTeamsToStart) return;
-        gameState.status = 'COUNTDOWN';
-        gameState.countdown = 5;
-        broadcast();
-        const timer = setInterval(() => {
-            gameState.countdown--;
-            if (gameState.countdown <= 0) { clearInterval(timer); gameState.status = 'RACING'; }
-            broadcast();
-        }, 1000);
     });
 
     socket.on('restart', () => {
@@ -96,4 +83,4 @@ io.on('connection', (socket) => {
     });
 });
 
-server.listen(3000, () => console.log('SERVER RUNNING'));
+server.listen(3000, () => console.log('SERVER READY'));
